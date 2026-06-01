@@ -58,7 +58,11 @@ export const topbarPlugin: JupyterFrontEndPlugin<
     const title = <TitleComponent config={config.topBar} />;
     widget.addReactWidget(title, 'left', 0);
     const menu = (
-      <MenuComponent config={config.topBar} themeManager={themeManager} />
+      <MenuComponent
+        config={config.topBar}
+        themeManager={themeManager}
+        layoutRegistry={layoutRegistry}
+      />
     );
     widget.addReactWidget(menu, 'right', 10000);
 

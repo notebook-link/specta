@@ -35,6 +35,7 @@ export class NotebookGridWidgetFactory extends ABCWidgetFactory<
     this._shell = options.shell;
     this._themeManager = options.themeManager;
     this._spectaTopbar = options.spectaTopbar;
+    this._layoutRegistry = options.spectaLayoutRegistry;
   }
 
   protected createNewWidget(
@@ -50,12 +51,19 @@ export class NotebookGridWidgetFactory extends ABCWidgetFactory<
         nbPath: path
       });
       const isSpecta = isSpectaApp();
+
+      const spectaWidget = await this._spectaWidgetFactory.createNew({
+        context
+      });
+
       if (!spectaConfig.hideTopbar) {
         const title = <TitleComponent config={spectaConfig.topBar} />;
         const menu = (
           <MenuComponent
             config={spectaConfig.topBar}
             themeManager={this._themeManager}
+            layoutRegistry={this._layoutRegistry}
+            spectaWidget={spectaWidget}
           />
         );
         if (!isSpecta) {
@@ -76,10 +84,6 @@ export class NotebookGridWidgetFactory extends ABCWidgetFactory<
         this._shell.hideTopBar();
       }
 
-      const spectaWidget = await this._spectaWidgetFactory.createNew({
-        context
-      });
-
       if (spectaWidget) {
         content.addWidget(spectaWidget);
       }
@@ -97,4 +101,5 @@ export class NotebookGridWidgetFactory extends ABCWidgetFactory<
   private _shell: ISpectaShell;
   private _themeManager?: IThemeManager;
   private _spectaTopbar: ISpectaTopbarWidget;
+  private _layoutRegistry: ISpectaLayoutRegistry;
 }

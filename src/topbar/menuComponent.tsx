@@ -4,11 +4,16 @@ import React, { useState, useRef, useEffect } from 'react';
 import { GearIcon } from '../components/icon/gear';
 import { IconButton } from '../components/iconButton';
 import { SettingContent } from './settingDialog';
-import { ITopbarConfig } from '../token';
+import { ISpectaLayoutRegistry, ITopbarConfig } from '../token';
 
 interface IProps {
   config?: ITopbarConfig;
   themeManager?: IThemeManager;
+  layoutRegistry?: ISpectaLayoutRegistry;
+  spectaWidget?: {
+    currentLayoutName: string;
+    setCurrentLayout(name: string): void;
+  };
 }
 
 export function MenuComponent(props: IProps): JSX.Element {
@@ -46,6 +51,8 @@ export function MenuComponent(props: IProps): JSX.Element {
           <SettingContent
             config={props.config}
             themeManager={props.themeManager}
+            layoutRegistry={props.layoutRegistry}
+            spectaWidget={props.spectaWidget}
           />
         </div>
       )}
