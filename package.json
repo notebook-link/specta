@@ -113,6 +113,7 @@
         "@types/reveal.js": "^5.2.0",
         "@voila-dashboards/voila": "^0.5.5",
         "mock-socket": "^9.3.1",
+        "plainb": "^1.8.0",
         "react": "^18.3.0",
         "react-dom": "^18.3.0",
         "reveal.js": "^5.2.1"
