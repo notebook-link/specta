@@ -10,6 +10,7 @@ import { Contents, KernelSpec } from '@jupyterlab/services';
 import { CommandRegistry } from '@lumino/commands';
 
 import { NotebookGridWidgetFactory } from './document/factory';
+import { PlainbNotebookModelFactory } from './document/plainb_factory';
 import { SpectaWidgetFactory } from './specta_widget_factory';
 import {
   ISpectaAppConfig,
@@ -20,12 +21,26 @@ import {
   ISpectaUrlFactory
 } from './token';
 
-export const PLAINB_FACTORY_LABELS: Record<string, string> = {
-  parsepy: 'Specta (Percent .py)',
-  parsesphinxgallery: 'Specta (Sphinx Gallery .py)',
-  parseclassicmd: 'Specta (Classic Markdown .md)',
-  parsemystmd: 'Specta (MyST .md)'
-};
+// Plain-text notebook formats handled via plainb.
+export const PLAINB_EXTENSIONS: Array<{
+  ext: string;
+  fileTypeName: string;
+  modelName: string;
+  factoryName: string;
+}> = [
+  {
+    ext: '.py',
+    fileTypeName: 'ptjnb-py',
+    modelName: 'ptjnb-model-py',
+    factoryName: 'specta-py'
+  },
+  {
+    ext: '.md',
+    fileTypeName: 'ptjnb-md',
+    modelName: 'ptjnb-model-md',
+    factoryName: 'specta-md'
+  }
+];
 
 export function registerDocumentFactory(options: {
   factoryName: string;
@@ -85,16 +100,26 @@ export function registerDocumentFactory(options: {
     spectaTracker.add(widget);
   });
 
-  // Define plainb format details
-  const plainbFormats = Object.keys(PLAINB_FACTORY_LABELS);
+  // Register one auto-detecting "Specta" factory per plain-text extension.
+  for (const { ext, fileTypeName, modelName, factoryName } of PLAINB_EXTENSIONS) {
+    app.docRegistry.addFileType({
+      name: fileTypeName,
+      extensions: [ext],
+      contentType: 'file',
+      fileFormat: 'text'
+    });
 
-  for (const format of plainbFormats) {
-    const fileTypeName = `ptjnb-${format}`;
-    const modelName = `ptjnb-model-${format}`;
-    const factoryUniqueName = PLAINB_FACTORY_LABELS[format];
+    app.docRegistry.addModelFactory(
+      new PlainbNotebookModelFactory({
+        name: modelName,
+        ext,
+        kernelSpecManager
+      })
+    );
 
     const plainbWidgetFactory = new NotebookGridWidgetFactory({
-      name: factoryUniqueName,
+      name: factoryName,
+      label: 'Specta',
       modelName: modelName,
       fileTypes: [fileTypeName],
       shell: app.shell,

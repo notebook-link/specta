@@ -31,7 +31,6 @@ import {
   createFileBrowser,
   hideAppLoadingIndicator,
   isSpectaApp,
-  PLAINB_FACTORY_LABELS,
   readSpectaConfig,
   registerDocumentFactory
 } from '../tool';
@@ -155,8 +154,7 @@ export const spectaOpener: JupyterFrontEndPlugin<void, ILabShell> = {
           });
           let factory = 'specta';
           if (isPlainb) {
-            const format = fileTypeName.replace('ptjnb-', '');
-            factory = PLAINB_FACTORY_LABELS[format] ?? 'specta';
+            factory = fileTypeName.replace('ptjnb-', 'specta-');
           }
           const widget = docManager.openOrReveal(path, factory);
           if (widget) {
@@ -186,8 +184,7 @@ export const spectaOpener: JupyterFrontEndPlugin<void, ILabShell> = {
             app.shell.addClass('specta-document-viewer');
             let factory = 'specta';
             if (isPlainb) {
-              const format = fileTypeName.replace('ptjnb-', '');
-              factory = PLAINB_FACTORY_LABELS[format] ?? 'specta';
+              factory = fileTypeName.replace('ptjnb-', 'specta-');
             }
             const widget = docManager.openOrReveal(path, factory);
             if (widget) {
