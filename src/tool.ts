@@ -101,7 +101,12 @@ export function registerDocumentFactory(options: {
   });
 
   // Register one auto-detecting "Specta" factory per plain-text extension.
-  for (const { ext, fileTypeName, modelName, factoryName } of PLAINB_EXTENSIONS) {
+  for (const {
+    ext,
+    fileTypeName,
+    modelName,
+    factoryName
+  } of PLAINB_EXTENSIONS) {
     app.docRegistry.addFileType({
       name: fileTypeName,
       extensions: [ext],

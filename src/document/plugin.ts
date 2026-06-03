@@ -141,9 +141,13 @@ export const spectaOpener: JupyterFrontEndPlugin<void, ILabShell> = {
         const labShell = app.shell;
 
         const fileTypes = app.docRegistry.getFileTypesForPath(path);
-        const plainbFileType = fileTypes.find(ft => ft.name.startsWith('ptjnb-'));
+        const plainbFileType = fileTypes.find(ft =>
+          ft.name.startsWith('ptjnb-')
+        );
         const isPlainb = !!plainbFileType;
-        const fileTypeName = plainbFileType ? plainbFileType.name : fileTypes[0]?.name;
+        const fileTypeName = plainbFileType
+          ? plainbFileType.name
+          : fileTypes[0]?.name;
 
         if (PathExt.extname(path) === '.ipynb' || isPlainb) {
           const commands = app.commands;
@@ -178,9 +182,13 @@ export const spectaOpener: JupyterFrontEndPlugin<void, ILabShell> = {
           await new Promise(r => setTimeout(r, 100));
           await kernelSpecManager.ready;
           const fileTypes = app.docRegistry.getFileTypesForPath(path);
-          const plainbFileType = fileTypes.find(ft => ft.name.startsWith('ptjnb-'));
+          const plainbFileType = fileTypes.find(ft =>
+            ft.name.startsWith('ptjnb-')
+          );
           const isPlainb = !!plainbFileType;
-          const fileTypeName = plainbFileType ? plainbFileType.name : fileTypes[0]?.name;
+          const fileTypeName = plainbFileType
+            ? plainbFileType.name
+            : fileTypes[0]?.name;
 
           if (PathExt.extname(path) === '.ipynb' || isPlainb) {
             app.shell.addClass('specta-document-viewer');
