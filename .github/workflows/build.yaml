@@ -17,7 +17,7 @@ jobs:
       - name: Install Conda environment with Micromamba
         uses: mamba-org/setup-micromamba@v3
         with:
-          micromamba-version: '2.3.0'
+          micromamba-version: '2.3.2-0'
           environment-name: build-env
           create-args: >-
             python=3.10
