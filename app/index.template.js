@@ -39,7 +39,7 @@ async function createModule(scope, module) {
  * The main entry point for the application.
  */
 export async function main() {
-  const allPlugins = [];  
+  const allPlugins = [];
   const pluginsToRegister = [ pathsPlugin, translatorPlugin, ...spectaPlugins ];
   const federatedExtensionPromises = [];
   const federatedMimeExtensionPromises = [];
@@ -202,7 +202,13 @@ export async function main() {
   const pluginRegistry = new PluginRegistry();
 
   // 2. Register the plugins
-  pluginRegistry.registerPlugins(pluginsToRegister);
+  for (const plugin of pluginsToRegister) {
+    try {
+      pluginRegistry.registerPlugin(plugin);
+    } catch(e) {
+      console.error(e);
+    }
+  }
 
   // 3. Get and resolve the service manager and connection status plugins
   const IServiceManager = require('@jupyterlab/services').IServiceManager;

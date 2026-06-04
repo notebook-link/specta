@@ -23,7 +23,7 @@
     "style": "style/index.css",
     "repository": {
         "type": "git",
-        "url": "https://github.com/trungleduc/specta.git"
+        "url": "https://github.com/notebook-link/specta.git"
     },
     "scripts": {
         "clean": "rimraf specta/labextension && rimraf app/specta/build && rimraf specta/app_static",
