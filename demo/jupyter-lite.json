@@ -1,18 +1,20 @@
 {
   "jupyter-config-data": {
     "enableMemoryStorage": true,
-    "contentsStorageDrivers": ["memoryStorageDriver"],
+    "contentsStorageDrivers": [
+      "memoryStorageDriver"
+    ],
     "spectaConfig": {
       "topBar": {
         "title": "Specta Tree"
       },
       "defaultLayout": "default",
       "perFileConfig": {
-        "files/blog.ipynb": {
+        "blog.ipynb": {
           "hideTopbar": false,
           "defaultLayout": "article"
         },
-        "files/slides.ipynb": {
+        "slides.ipynb": {
           "hideTopbar": true,
           "slidesTheme": "sky"
         }
