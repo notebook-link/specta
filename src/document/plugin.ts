@@ -32,7 +32,8 @@ import {
   hideAppLoadingIndicator,
   isSpectaApp,
   readSpectaConfig,
-  registerDocumentFactory
+  registerDocumentFactory,
+  PLAINB_PREFIX
 } from '../tool';
 
 const activate = (
@@ -142,7 +143,7 @@ export const spectaOpener: JupyterFrontEndPlugin<void, ILabShell> = {
 
         const fileTypes = app.docRegistry.getFileTypesForPath(path);
         const plainbFileType = fileTypes.find(ft =>
-          ft.name.startsWith('ptjnb-')
+          ft.name.startsWith(PLAINB_PREFIX)
         );
         const isPlainb = !!plainbFileType;
         const fileTypeName = plainbFileType
@@ -159,7 +160,7 @@ export const spectaOpener: JupyterFrontEndPlugin<void, ILabShell> = {
           });
           let factory = 'specta';
           if (isPlainb) {
-            factory = fileTypeName.replace('ptjnb-', 'specta-');
+            factory = fileTypeName.replace(PLAINB_PREFIX, 'specta-');
           }
           const widget = docManager.openOrReveal(path, factory);
           if (widget) {
@@ -183,7 +184,7 @@ export const spectaOpener: JupyterFrontEndPlugin<void, ILabShell> = {
           await kernelSpecManager.ready;
           const fileTypes = app.docRegistry.getFileTypesForPath(path);
           const plainbFileType = fileTypes.find(ft =>
-            ft.name.startsWith('ptjnb-')
+            ft.name.startsWith(PLAINB_PREFIX)
           );
           const isPlainb = !!plainbFileType;
           const fileTypeName = plainbFileType
@@ -194,7 +195,7 @@ export const spectaOpener: JupyterFrontEndPlugin<void, ILabShell> = {
             app.shell.addClass('specta-document-viewer');
             let factory = 'specta';
             if (isPlainb) {
-              factory = fileTypeName.replace('ptjnb-', 'specta-');
+              factory = fileTypeName.replace(PLAINB_PREFIX, 'specta-');
             }
             const widget = docManager.openOrReveal(path, factory);
             if (widget) {

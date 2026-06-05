@@ -21,6 +21,8 @@ import {
   ISpectaUrlFactory
 } from './token';
 
+export const PLAINB_PREFIX = 'ptjnb-';
+
 // Plain-text notebook formats handled via plainb.
 export const PLAINB_EXTENSIONS: Array<{
   ext: string;
@@ -30,14 +32,14 @@ export const PLAINB_EXTENSIONS: Array<{
 }> = [
   {
     ext: '.py',
-    fileTypeName: 'ptjnb-py',
-    modelName: 'ptjnb-model-py',
+    fileTypeName: `${PLAINB_PREFIX}py`,
+    modelName: `${PLAINB_PREFIX}model-py`,
     factoryName: 'specta-py'
   },
   {
     ext: '.md',
-    fileTypeName: 'ptjnb-md',
-    modelName: 'ptjnb-model-md',
+    fileTypeName: `${PLAINB_PREFIX}md`,
+    modelName: `${PLAINB_PREFIX}model-md`,
     factoryName: 'specta-md'
   }
 ];
