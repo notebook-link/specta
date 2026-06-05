@@ -1,5 +1,10 @@
 # ---
 # jupyter:
+#   specta:
+#     defaultLayout: article
+#     hideTopbar: "No"
+#     topbarTitle: "Image Processing Gallery"
+#     topbarThemeToggle: "Yes"
 #   kernelspec:
 #     name: python3
 #     display_name: Python 3 (ipykernel)

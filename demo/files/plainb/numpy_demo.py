@@ -1,5 +1,9 @@
 # ---
 # jupyter:
+#   specta:
+#     defaultLayout: article
+#     hideTopbar: "Yes"
+#     topbarTitle: "NumPy Basics (Percent Py)"
 #   language_info:
 #     name: python
 #     version: "3.14.4"

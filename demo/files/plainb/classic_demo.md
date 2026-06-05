@@ -1,5 +1,9 @@
 ---
 jupyter:
+  specta:
+    hideTopbar: Yes
+    topbarThemeToggle: No
+    defaultLayout: article
   kernelspec:
     name: python3
     display_name: Python 3 (ipykernel)

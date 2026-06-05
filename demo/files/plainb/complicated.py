@@ -1,3 +1,11 @@
+# ---
+# jupyter:
+#   specta:
+#     defaultLayout: slides
+#     slidesTheme: moon
+#     hideTopbar: "Yes"
+# ---
+
 r"""
 =====
 Swirl
