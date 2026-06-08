@@ -31,19 +31,19 @@ export const PLAINB_EXTENSIONS: Array<{
   modelName: string;
   factoryName: string;
 }> = [
-    {
-      ext: '.py',
-      fileTypeName: `${PLAINB_PREFIX}py`,
-      modelName: `${PLAINB_PREFIX}model-py`,
-      factoryName: 'specta-py'
-    },
-    {
-      ext: '.md',
-      fileTypeName: `${PLAINB_PREFIX}md`,
-      modelName: `${PLAINB_PREFIX}model-md`,
-      factoryName: 'specta-md'
-    }
-  ];
+  {
+    ext: '.py',
+    fileTypeName: `${PLAINB_PREFIX}py`,
+    modelName: `${PLAINB_PREFIX}model-py`,
+    factoryName: 'specta-py'
+  },
+  {
+    ext: '.md',
+    fileTypeName: `${PLAINB_PREFIX}md`,
+    modelName: `${PLAINB_PREFIX}model-md`,
+    factoryName: 'specta-md'
+  }
+];
 
 export function registerDocumentFactory(options: {
   factoryName: string;
@@ -163,22 +163,22 @@ export function createFileBrowser(options: {
   const urlFactoryFn = urlFactory
     ? urlFactory
     : (path: string) => {
-      const baseUrl = PageConfig.getBaseUrl();
-      let appUrl = PageConfig.getOption('appUrl');
-      if (!appUrl.endsWith('/')) {
-        appUrl = `${appUrl}/`;
-      }
-      const url = new URL(URLExt.join(baseUrl, appUrl));
-      url.searchParams.set('path', path);
-      const queries = PageConfig.getOption('query')
-        .split('&')
-        .filter(Boolean);
-      queries.forEach(query => {
-        const [key, value] = query.split('=');
-        url.searchParams.set(key, value);
-      });
-      return url.toString();
-    };
+        const baseUrl = PageConfig.getBaseUrl();
+        let appUrl = PageConfig.getOption('appUrl');
+        if (!appUrl.endsWith('/')) {
+          appUrl = `${appUrl}/`;
+        }
+        const url = new URL(URLExt.join(baseUrl, appUrl));
+        url.searchParams.set('path', path);
+        const queries = PageConfig.getOption('query')
+          .split('&')
+          .filter(Boolean);
+        queries.forEach(query => {
+          const [key, value] = query.split('=');
+          url.searchParams.set(key, value);
+        });
+        return url.toString();
+      };
 
   const oldHandler = browser.listing.handleOpen.bind(browser.listing);
   browser.listing.handleOpen = (item: Contents.IModel) => {
