@@ -1,7 +1,8 @@
 import { ILabShell, JupyterFrontEnd } from '@jupyterlab/application';
 import { IThemeManager, WidgetTracker } from '@jupyterlab/apputils';
 import { IEditorServices } from '@jupyterlab/codeeditor';
-import { PageConfig, URLExt } from '@jupyterlab/coreutils';
+import { PageConfig, PathExt, URLExt } from '@jupyterlab/coreutils';
+import { IDocumentManager } from '@jupyterlab/docmanager';
 import { IDefaultFileBrowser } from '@jupyterlab/filebrowser';
 import { ICell, INotebookMetadata } from '@jupyterlab/nbformat';
 import { INotebookTracker, NotebookPanel } from '@jupyterlab/notebook';
@@ -30,19 +31,19 @@ export const PLAINB_EXTENSIONS: Array<{
   modelName: string;
   factoryName: string;
 }> = [
-  {
-    ext: '.py',
-    fileTypeName: `${PLAINB_PREFIX}py`,
-    modelName: `${PLAINB_PREFIX}model-py`,
-    factoryName: 'specta-py'
-  },
-  {
-    ext: '.md',
-    fileTypeName: `${PLAINB_PREFIX}md`,
-    modelName: `${PLAINB_PREFIX}model-md`,
-    factoryName: 'specta-md'
-  }
-];
+    {
+      ext: '.py',
+      fileTypeName: `${PLAINB_PREFIX}py`,
+      modelName: `${PLAINB_PREFIX}model-py`,
+      factoryName: 'specta-py'
+    },
+    {
+      ext: '.md',
+      fileTypeName: `${PLAINB_PREFIX}md`,
+      modelName: `${PLAINB_PREFIX}model-md`,
+      factoryName: 'specta-md'
+    }
+  ];
 
 export function registerDocumentFactory(options: {
   factoryName: string;
@@ -162,22 +163,22 @@ export function createFileBrowser(options: {
   const urlFactoryFn = urlFactory
     ? urlFactory
     : (path: string) => {
-        const baseUrl = PageConfig.getBaseUrl();
-        let appUrl = PageConfig.getOption('appUrl');
-        if (!appUrl.endsWith('/')) {
-          appUrl = `${appUrl}/`;
-        }
-        const url = new URL(URLExt.join(baseUrl, appUrl));
-        url.searchParams.set('path', path);
-        const queries = PageConfig.getOption('query')
-          .split('&')
-          .filter(Boolean);
-        queries.forEach(query => {
-          const [key, value] = query.split('=');
-          url.searchParams.set(key, value);
-        });
-        return url.toString();
-      };
+      const baseUrl = PageConfig.getBaseUrl();
+      let appUrl = PageConfig.getOption('appUrl');
+      if (!appUrl.endsWith('/')) {
+        appUrl = `${appUrl}/`;
+      }
+      const url = new URL(URLExt.join(baseUrl, appUrl));
+      url.searchParams.set('path', path);
+      const queries = PageConfig.getOption('query')
+        .split('&')
+        .filter(Boolean);
+      queries.forEach(query => {
+        const [key, value] = query.split('=');
+        url.searchParams.set(key, value);
+      });
+      return url.toString();
+    };
 
   const oldHandler = browser.listing.handleOpen.bind(browser.listing);
   browser.listing.handleOpen = (item: Contents.IModel) => {
@@ -412,5 +413,38 @@ export async function configLabLayout(options: {
     if (statusBar && !statusBar.classList.contains('lm-mod-hidden')) {
       await commands.execute('statusbar:toggle');
     }
+  }
+}
+
+export function getSpectaDocInfo(
+  path: string,
+  app: JupyterFrontEnd<any>
+): { isSpectaDoc: boolean; factory: string } {
+  const fileTypes = app.docRegistry.getFileTypesForPath(path);
+  const plainbFileType = fileTypes.find(ft =>
+    ft.name.startsWith(PLAINB_PREFIX)
+  );
+  const isPlainb = !!plainbFileType;
+  const fileTypeName = plainbFileType
+    ? plainbFileType.name
+    : fileTypes[0]?.name;
+
+  const isSpectaDoc = PathExt.extname(path) === '.ipynb' || isPlainb;
+  const factory = isPlainb
+    ? fileTypeName.replace(PLAINB_PREFIX, 'specta-')
+    : 'specta';
+
+  return { isSpectaDoc, factory };
+}
+
+export function openDocument(
+  path: string,
+  factory: string,
+  docManager: IDocumentManager,
+  shell: JupyterFrontEnd.IShell
+): void {
+  const widget = docManager.openOrReveal(path, factory);
+  if (widget) {
+    shell.add(widget, 'main');
   }
 }
