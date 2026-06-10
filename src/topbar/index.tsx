@@ -12,7 +12,7 @@ import {
   ISpectaTopbarWidget,
   ISpectaTopbarWidgetToken
 } from '../token';
-import { isSpectaApp, readSpectaConfig } from '../tool';
+import { isSpectaApp, readSpectaConfig, PLAINB_PREFIX } from '../tool';
 import { MenuComponent } from './menuComponent';
 import { TitleComponent } from './titleComponent';
 import { TopbarWidget } from './topbarWidget';
@@ -51,7 +51,9 @@ export const topbarPlugin: JupyterFrontEndPlugin<
     widget.id = 'specta-topbar-widget';
     app.shell.add(widget, 'top');
 
-    if (path && PathExt.extname(path) === '.ipynb') {
+    const fileTypes = app.docRegistry.getFileTypesForPath(path ?? '');
+    const isPlainb = fileTypes.some(ft => ft.name.startsWith(PLAINB_PREFIX));
+    if (path && (PathExt.extname(path) === '.ipynb' || isPlainb)) {
       // Specta document will handle the top bar.
       return widget;
     }

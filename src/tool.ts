@@ -1,7 +1,8 @@
 import { ILabShell, JupyterFrontEnd } from '@jupyterlab/application';
 import { IThemeManager, WidgetTracker } from '@jupyterlab/apputils';
 import { IEditorServices } from '@jupyterlab/codeeditor';
-import { PageConfig, URLExt } from '@jupyterlab/coreutils';
+import { PageConfig, PathExt, URLExt } from '@jupyterlab/coreutils';
+import { IDocumentManager } from '@jupyterlab/docmanager';
 import { IDefaultFileBrowser } from '@jupyterlab/filebrowser';
 import { ICell, INotebookMetadata } from '@jupyterlab/nbformat';
 import { INotebookTracker, NotebookPanel } from '@jupyterlab/notebook';
@@ -10,6 +11,7 @@ import { Contents, KernelSpec } from '@jupyterlab/services';
 import { CommandRegistry } from '@lumino/commands';
 
 import { NotebookGridWidgetFactory } from './document/factory';
+import { PlainbNotebookModelFactory } from './document/plainb_factory';
 import { SpectaWidgetFactory } from './specta_widget_factory';
 import {
   ISpectaAppConfig,
@@ -19,6 +21,29 @@ import {
   ISpectaTopbarWidget,
   ISpectaUrlFactory
 } from './token';
+
+export const PLAINB_PREFIX = 'ptjnb-';
+
+// Plain-text notebook formats handled via plainb.
+export const PLAINB_EXTENSIONS: Array<{
+  ext: string;
+  fileTypeName: string;
+  modelName: string;
+  factoryName: string;
+}> = [
+  {
+    ext: '.py',
+    fileTypeName: `${PLAINB_PREFIX}py`,
+    modelName: `${PLAINB_PREFIX}model-py`,
+    factoryName: 'specta-py'
+  },
+  {
+    ext: '.md',
+    fileTypeName: `${PLAINB_PREFIX}md`,
+    modelName: `${PLAINB_PREFIX}model-md`,
+    factoryName: 'specta-md'
+  }
+];
 
 export function registerDocumentFactory(options: {
   factoryName: string;
@@ -77,6 +102,51 @@ export function registerDocumentFactory(options: {
     });
     spectaTracker.add(widget);
   });
+
+  // Register one auto-detecting "Specta" factory per plain-text extension.
+  for (const {
+    ext,
+    fileTypeName,
+    modelName,
+    factoryName
+  } of PLAINB_EXTENSIONS) {
+    app.docRegistry.addFileType({
+      name: fileTypeName,
+      extensions: [ext],
+      contentType: 'file',
+      fileFormat: 'text'
+    });
+
+    app.docRegistry.addModelFactory(
+      new PlainbNotebookModelFactory({
+        name: modelName,
+        ext,
+        kernelSpecManager
+      })
+    );
+
+    const plainbWidgetFactory = new NotebookGridWidgetFactory({
+      name: factoryName,
+      label: 'Specta',
+      modelName: modelName,
+      fileTypes: [fileTypeName],
+      shell: app.shell,
+      spectaWidgetFactory,
+      themeManager,
+      spectaLayoutRegistry,
+      spectaTopbar
+    });
+
+    app.docRegistry.addWidgetFactory(plainbWidgetFactory);
+
+    // Connect the widget to the specta tracker
+    plainbWidgetFactory.widgetCreated.connect((_sender, widget) => {
+      widget.context.pathChanged.connect(() => {
+        spectaTracker.save(widget);
+      });
+      spectaTracker.add(widget);
+    });
+  }
 }
 
 export function createFileBrowser(options: {
@@ -343,5 +413,38 @@ export async function configLabLayout(options: {
     if (statusBar && !statusBar.classList.contains('lm-mod-hidden')) {
       await commands.execute('statusbar:toggle');
     }
+  }
+}
+
+export function getSpectaDocInfo(
+  path: string,
+  app: JupyterFrontEnd<any>
+): { isSpectaDoc: boolean; factory: string } {
+  const fileTypes = app.docRegistry.getFileTypesForPath(path);
+  const plainbFileType = fileTypes.find(ft =>
+    ft.name.startsWith(PLAINB_PREFIX)
+  );
+  const isPlainb = !!plainbFileType;
+  const fileTypeName = plainbFileType
+    ? plainbFileType.name
+    : fileTypes[0]?.name;
+
+  const isSpectaDoc = PathExt.extname(path) === '.ipynb' || isPlainb;
+  const factory = isPlainb
+    ? fileTypeName.replace(PLAINB_PREFIX, 'specta-')
+    : 'specta';
+
+  return { isSpectaDoc, factory };
+}
+
+export function openDocument(
+  path: string,
+  factory: string,
+  docManager: IDocumentManager,
+  shell: JupyterFrontEnd.IShell
+): void {
+  const widget = docManager.openOrReveal(path, factory);
+  if (widget) {
+    shell.add(widget, 'main');
   }
 }

@@ -9,7 +9,7 @@ import {
   WidgetTracker
 } from '@jupyterlab/apputils';
 import { IEditorServices } from '@jupyterlab/codeeditor';
-import { PageConfig, PathExt, URLExt } from '@jupyterlab/coreutils';
+import { PageConfig, URLExt } from '@jupyterlab/coreutils';
 import { IDocumentManager } from '@jupyterlab/docmanager';
 import { IDefaultFileBrowser } from '@jupyterlab/filebrowser';
 import { INotebookTracker, NotebookPanel } from '@jupyterlab/notebook';
@@ -32,7 +32,9 @@ import {
   hideAppLoadingIndicator,
   isSpectaApp,
   readSpectaConfig,
-  registerDocumentFactory
+  registerDocumentFactory,
+  getSpectaDocInfo,
+  openDocument
 } from '../tool';
 
 const activate = (
@@ -140,7 +142,9 @@ export const spectaOpener: JupyterFrontEndPlugin<void, ILabShell> = {
       app.restored.then(async () => {
         const labShell = app.shell;
 
-        if (PathExt.extname(path) === '.ipynb') {
+        const { isSpectaDoc, factory } = getSpectaDocInfo(path, app);
+
+        if (isSpectaDoc) {
           const commands = app.commands;
           const spectaConfig = readSpectaConfig({});
           await configLabLayout({
@@ -148,10 +152,7 @@ export const spectaOpener: JupyterFrontEndPlugin<void, ILabShell> = {
             labShell,
             commands
           });
-          const widget = docManager.openOrReveal(path, 'specta');
-          if (widget) {
-            app.shell.add(widget, 'main');
-          }
+          openDocument(path, factory, docManager, app.shell);
         }
       });
       return;
@@ -168,12 +169,11 @@ export const spectaOpener: JupyterFrontEndPlugin<void, ILabShell> = {
         app.restored.then(async () => {
           await new Promise(r => setTimeout(r, 100));
           await kernelSpecManager.ready;
-          if (PathExt.extname(path) === '.ipynb') {
+          const { isSpectaDoc, factory } = getSpectaDocInfo(path, app);
+
+          if (isSpectaDoc) {
             app.shell.addClass('specta-document-viewer');
-            const widget = docManager.openOrReveal(path, 'specta');
-            if (widget) {
-              app.shell.add(widget, 'main');
-            }
+            openDocument(path, factory, docManager, app.shell);
           } else {
             let count = 0;
             const tryOpen = () => {
