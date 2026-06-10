@@ -2,6 +2,27 @@
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
+## 0.4.8
+
+([Full Changelog](https://github.com/notebook-link/specta/compare/v0.4.7...657e14816d0a9532d16a96512d39e762310df680))
+
+### Merged PRs
+
+- Add support for 4 plainb formats [#48](https://github.com/notebook-link/specta/pull/48) ([@Yahiewi](https://github.com/Yahiewi), [@trungleduc](https://github.com/trungleduc))
+- Fix the lite link in README [#45](https://github.com/notebook-link/specta/pull/45) ([@brichet](https://github.com/brichet), [@trungleduc](https://github.com/trungleduc))
+- Do not hard fail upon duplicated plugins [#44](https://github.com/notebook-link/specta/pull/44) ([@martinRenou](https://github.com/martinRenou), [@trungleduc](https://github.com/trungleduc))
+
+### Contributors to this release
+
+The following people contributed discussions, new ideas, code and documentation contributions, and review.
+See [our definition of contributors](https://github-activity.readthedocs.io/en/latest/use/#how-does-this-tool-define-contributions-in-the-reports).
+
+([GitHub contributors page for this release](https://github.com/notebook-link/specta/graphs/contributors?from=2026-01-30&to=2026-06-10&type=c))
+
+@brichet ([activity](https://github.com/search?q=repo%3Anotebook-link%2Fspecta+involves%3Abrichet+updated%3A2026-01-30..2026-06-10&type=Issues)) | @martinRenou ([activity](https://github.com/search?q=repo%3Anotebook-link%2Fspecta+involves%3AmartinRenou+updated%3A2026-01-30..2026-06-10&type=Issues)) | @trungleduc ([activity](https://github.com/search?q=repo%3Anotebook-link%2Fspecta+involves%3Atrungleduc+updated%3A2026-01-30..2026-06-10&type=Issues)) | @Yahiewi ([activity](https://github.com/search?q=repo%3Anotebook-link%2Fspecta+involves%3AYahiewi+updated%3A2026-01-30..2026-06-10&type=Issues))
+
+<!-- <END NEW CHANGELOG ENTRY> -->
+
 ## 0.4.7
 
 ([Full Changelog](https://github.com/trungleduc/specta/compare/v0.4.6...1eff62b8bab63ed9da78e221693820fa994c5778))
@@ -18,8 +39,6 @@ See [our definition of contributors](https://github-activity.readthedocs.io/en/l
 ([GitHub contributors page for this release](https://github.com/trungleduc/specta/graphs/contributors?from=2026-01-16&to=2026-01-30&type=c))
 
 @trungleduc ([activity](https://github.com/search?q=repo%3Atrungleduc%2Fspecta+involves%3Atrungleduc+updated%3A2026-01-16..2026-01-30&type=Issues))
-
-<!-- <END NEW CHANGELOG ENTRY> -->
 
 ## 0.4.6
 
