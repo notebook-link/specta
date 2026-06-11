@@ -2,6 +2,12 @@
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
+## 0.4.9
+
+No merged PRs
+
+<!-- <END NEW CHANGELOG ENTRY> -->
+
 ## 0.4.8
 
 ([Full Changelog](https://github.com/notebook-link/specta/compare/v0.4.7...657e14816d0a9532d16a96512d39e762310df680))
@@ -20,8 +26,6 @@ See [our definition of contributors](https://github-activity.readthedocs.io/en/l
 ([GitHub contributors page for this release](https://github.com/notebook-link/specta/graphs/contributors?from=2026-01-30&to=2026-06-10&type=c))
 
 @brichet ([activity](https://github.com/search?q=repo%3Anotebook-link%2Fspecta+involves%3Abrichet+updated%3A2026-01-30..2026-06-10&type=Issues)) | @martinRenou ([activity](https://github.com/search?q=repo%3Anotebook-link%2Fspecta+involves%3AmartinRenou+updated%3A2026-01-30..2026-06-10&type=Issues)) | @trungleduc ([activity](https://github.com/search?q=repo%3Anotebook-link%2Fspecta+involves%3Atrungleduc+updated%3A2026-01-30..2026-06-10&type=Issues)) | @Yahiewi ([activity](https://github.com/search?q=repo%3Anotebook-link%2Fspecta+involves%3AYahiewi+updated%3A2026-01-30..2026-06-10&type=Issues))
-
-<!-- <END NEW CHANGELOG ENTRY> -->
 
 ## 0.4.7
 
