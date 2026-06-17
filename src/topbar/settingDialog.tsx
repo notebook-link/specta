@@ -7,6 +7,10 @@ export const SettingContent = (props: {
   config?: ITopbarConfig;
   themeManager?: IThemeManager;
   layoutRegistry?: ISpectaLayoutRegistry;
+  spectaWidget?: {
+    currentLayoutName: string;
+    setCurrentLayout(name: string): void;
+  };
 }) => {
   const { themeManager, layoutRegistry } = props;
   const [themeOptions, setThemeOptions] = useState<string[]>([
@@ -20,7 +24,9 @@ export const SettingContent = (props: {
     layoutRegistry?.allLayouts() ?? []
   );
   const [selectedLayout, setSelectedLayout] = useState<string>(
-    layoutRegistry?.selectedLayout?.name ?? 'default'
+    props.spectaWidget?.currentLayoutName ??
+      layoutRegistry?.selectedLayout?.name ??
+      'default'
   );
   useEffect(() => {
     let cb: any;
@@ -69,12 +75,16 @@ export const SettingContent = (props: {
   const onLayoutChange = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
       const layout = e.currentTarget?.value;
-      if (layout && layoutRegistry) {
-        layoutRegistry.setSelectedLayout(layout);
+      if (layout) {
+        if (props.spectaWidget) {
+          props.spectaWidget.setCurrentLayout(layout);
+        } else if (layoutRegistry) {
+          layoutRegistry.setSelectedLayout(layout);
+        }
         setSelectedLayout(layout);
       }
     },
-    [layoutRegistry]
+    [props.spectaWidget, layoutRegistry]
   );
   return (
     <div style={{ padding: '0 10px' }}>
