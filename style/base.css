@@ -131,6 +131,17 @@
   transition: background 0.2s ease;
   background: transparent;
   padding: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 28px !important;
+  height: 28px !important;
+}
+
+.specta-icon-button svg {
+  display: block !important;
+  width: 23px !important;
+  height: 23px !important;
 }
 
 .specta-icon-button:hover {

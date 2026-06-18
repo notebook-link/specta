@@ -41,6 +41,7 @@ export interface ITopbarConfig {
   settingsButton?: boolean;
   themeToggle?: boolean;
   layoutToggle?: boolean;
+  openInToggle?: boolean;
   link?: string;
 }
 
