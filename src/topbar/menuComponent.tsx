@@ -35,7 +35,7 @@ export function MenuComponent(props: IProps): JSX.Element {
   }, []);
 
   const isSpecta = isSpectaApp();
-  const showOpenInLab = isSpecta && (props.config?.openInToggle !== false);
+  const showOpenInLab = isSpecta && props.config?.openInToggle !== false;
   const showOpenInSpecta = !isSpecta;
 
   const openInApp = (app: 'lab' | 'specta') => {
@@ -49,23 +49,22 @@ export function MenuComponent(props: IProps): JSX.Element {
   };
 
   return (
-    <div className="specta-topbar-right" style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+    <div
+      className="specta-topbar-right"
+      style={{ display: 'flex', gap: '6px', alignItems: 'center' }}
+    >
       {showOpenInLab && (
         <IconButton
           onClick={() => openInApp('lab')}
           title="Open in JupyterLab"
-          icon={
-            <jupyterIcon.react width="23px" height="23px" />
-          }
+          icon={<jupyterIcon.react width="23px" height="23px" />}
         />
       )}
       {showOpenInSpecta && (
         <IconButton
           onClick={() => openInApp('specta')}
           title="Open in Standalone Specta"
-          icon={
-            <launchIcon.react width="23px" height="23px" />
-          }
+          icon={<launchIcon.react width="23px" height="23px" />}
         />
       )}
       <IconButton
