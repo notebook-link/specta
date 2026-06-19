@@ -57,6 +57,7 @@ export function registerDocumentFactory(options: {
   themeManager?: IThemeManager;
   spectaTopbar: ISpectaTopbarWidget;
   kernelSpecManager: KernelSpec.IManager;
+  urlFactory?: ISpectaUrlFactory | null;
 }) {
   const {
     factoryName,
@@ -69,7 +70,8 @@ export function registerDocumentFactory(options: {
     spectaLayoutRegistry,
     themeManager,
     spectaTopbar,
-    kernelSpecManager
+    kernelSpecManager,
+    urlFactory
   } = options;
 
   const spectaWidgetFactory = new SpectaWidgetFactory({
@@ -90,7 +92,8 @@ export function registerDocumentFactory(options: {
     spectaWidgetFactory,
     themeManager,
     spectaLayoutRegistry,
-    spectaTopbar
+    spectaTopbar,
+    urlFactory
   });
 
   // Registering the widget factory
@@ -134,7 +137,8 @@ export function registerDocumentFactory(options: {
       spectaWidgetFactory,
       themeManager,
       spectaLayoutRegistry,
-      spectaTopbar
+      spectaTopbar,
+      urlFactory
     });
 
     app.docRegistry.addWidgetFactory(plainbWidgetFactory);

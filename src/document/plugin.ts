@@ -24,7 +24,8 @@ import {
   ISpectaTopbarWidget,
   ISpectaTopbarWidgetToken,
   ISpectaUrlFactory,
-  ISpectaUrlFactoryToken
+  ISpectaUrlFactoryToken,
+  IUiOption
 } from '../token';
 import {
   configLabLayout,
@@ -46,8 +47,10 @@ const activate = (
   spectaLayoutRegistry: ISpectaLayoutRegistry,
   themeManager: IThemeManager,
   spectaTopbar: ISpectaTopbarWidget,
-  kernelSpecManager: KernelSpec.IManager
+  kernelSpecManager: KernelSpec.IManager,
+  urlFactory: ISpectaUrlFactory | null
 ): IWidgetTracker => {
+  console.log('Specta document tracker active!'); // Test log here
   const namespace = 'specta';
   const spectaTracker = new WidgetTracker<Widget>({ namespace });
 
@@ -62,7 +65,8 @@ const activate = (
     spectaLayoutRegistry,
     themeManager,
     spectaTopbar,
-    kernelSpecManager
+    kernelSpecManager,
+    urlFactory
   });
 
   return spectaTracker;
@@ -84,6 +88,7 @@ export const spectaDocument: JupyterFrontEndPlugin<
     ISpectaTopbarWidgetToken,
     IKernelSpecManager
   ],
+  optional: [ISpectaUrlFactoryToken],
   activate,
   provides: ISpectaDocTracker
 };
@@ -93,13 +98,19 @@ export const spectaUrlFactory: JupyterFrontEndPlugin<ISpectaUrlFactory> = {
   autoStart: true,
   provides: ISpectaUrlFactoryToken,
   activate: () => {
-    const urlFactory = (path: string) => {
+    console.log('Specta urlFactory plugin activated (local version)');
+    const uis: IUiOption[] = [
+      { id: 'lab', label: 'JupyterLab' },
+      { id: 'specta', label: 'Specta' }
+    ];
+    const segments: Record<string, string> = {
+      lab: 'lab',
+      specta: 'specta'
+    };
+    const urlFactory = (path: string, ui = 'specta'): string => {
       const baseUrl = PageConfig.getBaseUrl();
-      let appUrl = PageConfig.getOption('appUrl');
-      if (!appUrl.endsWith('/')) {
-        appUrl = `${appUrl}/`;
-      }
-      const url = new URL(URLExt.join(baseUrl, appUrl));
+      const segment = segments[ui] ?? ui;
+      const url = new URL(URLExt.join(baseUrl, segment, 'index.html'));
       url.searchParams.set('path', path);
       const queries = PageConfig.getOption('query').split('&').filter(Boolean);
       queries.forEach(query => {
@@ -108,7 +119,7 @@ export const spectaUrlFactory: JupyterFrontEndPlugin<ISpectaUrlFactory> = {
       });
       return url.toString();
     };
-    return urlFactory;
+    return Object.assign(urlFactory, { uis });
   }
 };
 

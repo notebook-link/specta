@@ -4,11 +4,14 @@ import React, { useState, useRef, useEffect } from 'react';
 import { GearIcon } from '../components/icon/gear';
 import { IconButton } from '../components/iconButton';
 import { SettingContent } from './settingDialog';
-import { ITopbarConfig } from '../token';
+import { ISpectaUrlFactory, ITopbarConfig } from '../token';
 
 interface IProps {
   config?: ITopbarConfig;
   themeManager?: IThemeManager;
+  urlFactory?: ISpectaUrlFactory | null;
+  currentPath?: string | null;
+  currentUi?: string;
 }
 
 export function MenuComponent(props: IProps): JSX.Element {
@@ -46,6 +49,9 @@ export function MenuComponent(props: IProps): JSX.Element {
           <SettingContent
             config={props.config}
             themeManager={props.themeManager}
+            urlFactory={props.urlFactory}
+            currentPath={props.currentPath}
+            currentUi={props.currentUi}
           />
         </div>
       )}

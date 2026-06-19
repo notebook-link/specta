@@ -65,7 +65,14 @@ export interface ISpectaCellConfig {
   showOutput?: boolean;
   outputSize?: 'Small' | 'Big' | 'Full';
 }
-export type ISpectaUrlFactory = (path: string) => string;
+export interface IUiOption {
+  id: string;
+  label: string;
+}
+export interface ISpectaUrlFactory {
+  (path: string, ui?: string): string;
+  readonly uis: IUiOption[];
+}
 export const ISpectaLayoutRegistry = new Token<ISpectaLayoutRegistry>(
   'specta:ISpectaLayoutRegistry'
 );

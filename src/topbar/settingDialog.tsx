@@ -1,12 +1,19 @@
 import { IThemeManager } from '@jupyterlab/apputils';
 import React, { useState, useEffect, useCallback } from 'react';
 import { Divider } from '../components/divider';
-import { ISpectaLayoutRegistry, ITopbarConfig } from '../token';
+import {
+  ISpectaLayoutRegistry,
+  ISpectaUrlFactory,
+  ITopbarConfig
+} from '../token';
 
 export const SettingContent = (props: {
   config?: ITopbarConfig;
   themeManager?: IThemeManager;
   layoutRegistry?: ISpectaLayoutRegistry;
+  urlFactory?: ISpectaUrlFactory | null;
+  currentPath?: string | null;
+  currentUi?: string;
 }) => {
   const { themeManager, layoutRegistry } = props;
   const [themeOptions, setThemeOptions] = useState<string[]>([
@@ -76,6 +83,16 @@ export const SettingContent = (props: {
     },
     [layoutRegistry]
   );
+  const { urlFactory, currentPath } = props;
+  const onUiChange = useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      const ui = e.currentTarget?.value;
+      if (ui && urlFactory && currentPath) {
+        window.location.assign(urlFactory(currentPath, ui));
+      }
+    },
+    [urlFactory, currentPath]
+  );
   return (
     <div style={{ padding: '0 10px' }}>
       <p style={{ marginTop: 0, marginBottom: '5px', fontSize: '1rem' }}>
@@ -140,6 +157,30 @@ export const SettingContent = (props: {
             </div>
           </div>
         )}
+      {currentPath && urlFactory && urlFactory.uis.length > 0 && (
+        <div>
+          <label htmlFor="">Select UI</label>
+          <div className="jp-select-wrapper">
+            <select
+              className=" jp-mod-styled specta-topbar-theme"
+              onChange={onUiChange}
+              defaultValue={props.currentUi}
+            >
+              {urlFactory.uis.map(ui => {
+                return (
+                  <option
+                    key={ui.id}
+                    value={ui.id}
+                    style={{ background: 'var(--jp-layout-color2)' }}
+                  >
+                    {ui.label}
+                  </option>
+                );
+              })}
+            </select>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
