@@ -35,6 +35,7 @@ import {
   registerDocumentFactory,
   getSpectaDocInfo,
   openDocument
+
 } from '../tool';
 
 const activate = (
@@ -163,13 +164,9 @@ export const spectaOpener: JupyterFrontEndPlugin<void, ILabShell> = {
         return;
       }
       app.restored.then(async () => {
-        const { isSpectaDoc } = getSpectaDocInfo(path, app);
+        const { isSpectaDoc, factory } = getSpectaDocInfo(path, app);
         if (isSpectaDoc) {
-          // Open with the default factory so the full regular lab UI is preserved
-          const widget = docManager.openOrReveal(path);
-          if (widget) {
-            app.shell.add(widget, 'main');
-          }
+          openDocument(path, factory, docManager, app.shell);
         }
       });
       return;
