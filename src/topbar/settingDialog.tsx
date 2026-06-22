@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Divider } from '../components/divider';
 import {
   ISpectaLayoutRegistry,
-  ISpectaUrlFactory,
+  ISpectaUiSwitcher,
   ITopbarConfig
 } from '../token';
 
@@ -11,7 +11,7 @@ export const SettingContent = (props: {
   config?: ITopbarConfig;
   themeManager?: IThemeManager;
   layoutRegistry?: ISpectaLayoutRegistry;
-  urlFactory?: ISpectaUrlFactory | null;
+  uiSwitcher?: ISpectaUiSwitcher | null;
   currentPath?: string | null;
   currentUi?: string;
 }) => {
@@ -83,15 +83,15 @@ export const SettingContent = (props: {
     },
     [layoutRegistry]
   );
-  const { urlFactory, currentPath } = props;
+  const { uiSwitcher, currentPath } = props;
   const onUiChange = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
       const ui = e.currentTarget?.value;
-      if (ui && urlFactory && currentPath) {
-        window.location.assign(urlFactory(currentPath, ui));
+      if (ui && uiSwitcher && currentPath) {
+        uiSwitcher.switchTo(currentPath, ui);
       }
     },
-    [urlFactory, currentPath]
+    [uiSwitcher, currentPath]
   );
   return (
     <div style={{ padding: '0 10px' }}>
@@ -157,7 +157,7 @@ export const SettingContent = (props: {
             </div>
           </div>
         )}
-      {currentPath && urlFactory && urlFactory.uis.length > 0 && (
+      {currentPath && uiSwitcher && uiSwitcher.uis.length > 0 && (
         <div>
           <label htmlFor="">Select UI</label>
           <div className="jp-select-wrapper">
@@ -166,7 +166,7 @@ export const SettingContent = (props: {
               onChange={onUiChange}
               defaultValue={props.currentUi}
             >
-              {urlFactory.uis.map(ui => {
+              {uiSwitcher.uis.map(ui => {
                 return (
                   <option
                     key={ui.id}

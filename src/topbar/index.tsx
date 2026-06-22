@@ -11,8 +11,8 @@ import {
   ISpectaShell,
   ISpectaTopbarWidget,
   ISpectaTopbarWidgetToken,
-  ISpectaUrlFactory,
-  ISpectaUrlFactoryToken
+  ISpectaUiSwitcher,
+  ISpectaUiSwitcherToken
 } from '../token';
 import { isSpectaApp, readSpectaConfig, PLAINB_PREFIX } from '../tool';
 import { MenuComponent } from './menuComponent';
@@ -27,13 +27,13 @@ export const topbarPlugin: JupyterFrontEndPlugin<
   description: 'Specta topbar extension',
   autoStart: true,
   requires: [IThemeManager, ISpectaLayoutRegistry],
-  optional: [ISpectaUrlFactoryToken],
+  optional: [ISpectaUiSwitcherToken],
   provides: ISpectaTopbarWidgetToken,
   activate: (
     app: JupyterFrontEnd<ISpectaShell>,
     themeManager: IThemeManager,
     layoutRegistry: ISpectaLayoutRegistry,
-    urlFactory: ISpectaUrlFactory | null
+    uiSwitcher: ISpectaUiSwitcher | null
   ) => {
     const isSpecta = isSpectaApp();
     if (!isSpecta) {
@@ -67,7 +67,7 @@ export const topbarPlugin: JupyterFrontEndPlugin<
       <MenuComponent
         config={config.topBar}
         themeManager={themeManager}
-        urlFactory={urlFactory}
+        uiSwitcher={uiSwitcher}
         currentPath={path}
         currentUi={isSpecta ? 'specta' : 'lab'}
       />

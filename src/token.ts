@@ -69,9 +69,10 @@ export interface IUiOption {
   id: string;
   label: string;
 }
-export interface ISpectaUrlFactory {
-  (path: string, ui?: string): string;
-  readonly uis: IUiOption[];
+export type ISpectaUrlFactory = (path: string, ui?: string) => string;
+export interface ISpectaUiSwitcher {
+  uis: IUiOption[];
+  switchTo: (path: string, ui: string) => void;
 }
 export const ISpectaLayoutRegistry = new Token<ISpectaLayoutRegistry>(
   'specta:ISpectaLayoutRegistry'
@@ -83,6 +84,9 @@ export const ISpectaDocTracker = new Token<IWidgetTracker<Widget>>(
 
 export const ISpectaUrlFactoryToken = new Token<ISpectaUrlFactory>(
   'specta:ISpectaUrlFactoryToken'
+);
+export const ISpectaUiSwitcherToken = new Token<ISpectaUiSwitcher>(
+  'specta:ISpectaUiSwitcherToken'
 );
 
 export interface ISpectaTopbarWidget {

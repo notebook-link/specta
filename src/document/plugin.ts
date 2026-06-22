@@ -23,16 +23,15 @@ import {
   ISpectaShell,
   ISpectaTopbarWidget,
   ISpectaTopbarWidgetToken,
+  ISpectaUiSwitcher,
+  ISpectaUiSwitcherToken,
   ISpectaUrlFactory,
-  ISpectaUrlFactoryToken,
-  IUiOption
+  ISpectaUrlFactoryToken
 } from '../token';
 import {
-  configLabLayout,
   createFileBrowser,
   hideAppLoadingIndicator,
   isSpectaApp,
-  readSpectaConfig,
   registerDocumentFactory,
   getSpectaDocInfo,
   openDocument
@@ -48,7 +47,7 @@ const activate = (
   themeManager: IThemeManager,
   spectaTopbar: ISpectaTopbarWidget,
   kernelSpecManager: KernelSpec.IManager,
-  urlFactory: ISpectaUrlFactory | null
+  uiSwitcher: ISpectaUiSwitcher | null
 ): IWidgetTracker => {
   console.log('Specta document tracker active!'); // Test log here
   const namespace = 'specta';
@@ -66,7 +65,7 @@ const activate = (
     themeManager,
     spectaTopbar,
     kernelSpecManager,
-    urlFactory
+    uiSwitcher
   });
 
   return spectaTracker;
@@ -88,7 +87,7 @@ export const spectaDocument: JupyterFrontEndPlugin<
     ISpectaTopbarWidgetToken,
     IKernelSpecManager
   ],
-  optional: [ISpectaUrlFactoryToken],
+  optional: [ISpectaUiSwitcherToken],
   activate,
   provides: ISpectaDocTracker
 };
@@ -98,20 +97,16 @@ export const spectaUrlFactory: JupyterFrontEndPlugin<ISpectaUrlFactory> = {
   autoStart: true,
   provides: ISpectaUrlFactoryToken,
   activate: () => {
-    console.log('Specta urlFactory plugin activated (local version)');
-    const uis: IUiOption[] = [
-      { id: 'lab', label: 'JupyterLab' },
-      { id: 'specta', label: 'Specta' }
-    ];
     const segments: Record<string, string> = {
       lab: 'lab',
       specta: 'specta'
     };
-    const urlFactory = (path: string, ui = 'specta'): string => {
+    return (path: string, ui = 'specta'): string => {
       const baseUrl = PageConfig.getBaseUrl();
       const segment = segments[ui] ?? ui;
       const url = new URL(URLExt.join(baseUrl, segment, 'index.html'));
-      url.searchParams.set('path', path);
+      // spectaOpener in lab mode reads 'specta-path'; specta app reads 'path'
+      url.searchParams.set(ui === 'lab' ? 'specta-path' : 'path', path);
       const queries = PageConfig.getOption('query').split('&').filter(Boolean);
       queries.forEach(query => {
         const [key, value] = query.split('=');
@@ -119,7 +114,24 @@ export const spectaUrlFactory: JupyterFrontEndPlugin<ISpectaUrlFactory> = {
       });
       return url.toString();
     };
-    return Object.assign(urlFactory, { uis });
+  }
+};
+
+export const spectaUiSwitcher: JupyterFrontEndPlugin<ISpectaUiSwitcher> = {
+  id: 'specta/application-extension:uiSwitcher',
+  autoStart: true,
+  requires: [ISpectaUrlFactoryToken],
+  provides: ISpectaUiSwitcherToken,
+  activate: (_app, urlFactory: ISpectaUrlFactory) => {
+    return {
+      uis: [
+        { id: 'lab', label: 'JupyterLab' },
+        { id: 'specta', label: 'Specta' }
+      ],
+      switchTo: (path: string, ui: string) => {
+        window.location.assign(urlFactory(path, ui));
+      }
+    };
   }
 };
 
@@ -151,19 +163,13 @@ export const spectaOpener: JupyterFrontEndPlugin<void, ILabShell> = {
         return;
       }
       app.restored.then(async () => {
-        const labShell = app.shell;
-
-        const { isSpectaDoc, factory } = getSpectaDocInfo(path, app);
-
+        const { isSpectaDoc } = getSpectaDocInfo(path, app);
         if (isSpectaDoc) {
-          const commands = app.commands;
-          const spectaConfig = readSpectaConfig({});
-          await configLabLayout({
-            config: spectaConfig.labConfig,
-            labShell,
-            commands
-          });
-          openDocument(path, factory, docManager, app.shell);
+          // Open with the default factory so the full regular lab UI is preserved
+          const widget = docManager.openOrReveal(path);
+          if (widget) {
+            app.shell.add(widget, 'main');
+          }
         }
       });
       return;
