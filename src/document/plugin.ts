@@ -35,7 +35,6 @@ import {
   registerDocumentFactory,
   getSpectaDocInfo,
   openDocument
-
 } from '../tool';
 
 const activate = (
