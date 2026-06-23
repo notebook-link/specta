@@ -49,7 +49,6 @@ const activate = (
   kernelSpecManager: KernelSpec.IManager,
   uiSwitcher: ISpectaUiSwitcher | null
 ): IWidgetTracker => {
-  console.log('Specta document tracker active!'); // Test log here
   const namespace = 'specta';
   const spectaTracker = new WidgetTracker<Widget>({ namespace });
 
