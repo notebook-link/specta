@@ -9,7 +9,7 @@ import {
   WidgetTracker
 } from '@jupyterlab/apputils';
 import { IEditorServices } from '@jupyterlab/codeeditor';
-import { PageConfig } from '@jupyterlab/coreutils';
+import { PageConfig, URLExt } from '@jupyterlab/coreutils';
 import { IDocumentManager } from '@jupyterlab/docmanager';
 import { IDefaultFileBrowser } from '@jupyterlab/filebrowser';
 import { INotebookTracker, NotebookPanel } from '@jupyterlab/notebook';
@@ -101,7 +101,7 @@ export const spectaUrlFactory: JupyterFrontEndPlugin<ISpectaUrlFactory> = {
       const baseUrl = PageConfig.getBaseUrl();
       let appUrl = PageConfig.getOption('appUrl');
       if (!appUrl.endsWith('/')) {
-        appUrl += '/';
+        appUrl = `${appUrl}/`;
       }
       // Replace last segment of app URL with target UI 
       // (e.g. /foo/specta/ to /foo/lab/)
@@ -111,8 +111,7 @@ export const spectaUrlFactory: JupyterFrontEndPlugin<ISpectaUrlFactory> = {
       } else {
         parts.push(ui);
       }
-      const url = new URL(baseUrl);
-      url.pathname = '/' + parts.join('/') + '/';
+      const url = new URL(URLExt.join(baseUrl, '/' + parts.join('/') + '/'));
       // spectaOpener in lab mode reads 'specta-path'; specta app reads 'path'
       url.searchParams.set(ui === 'lab' ? 'specta-path' : 'path', path);
       const queries = PageConfig.getOption('query').split('&').filter(Boolean);
