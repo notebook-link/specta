@@ -103,7 +103,7 @@ export const spectaUrlFactory: JupyterFrontEndPlugin<ISpectaUrlFactory> = {
       if (!appUrl.endsWith('/')) {
         appUrl = `${appUrl}/`;
       }
-      // Replace last segment of app URL with target UI 
+      // Replace last segment of app URL with target UI
       // (e.g. /foo/specta/ to /foo/lab/)
       const parts = appUrl.split('/').filter(Boolean);
       if (parts.length > 0) {
