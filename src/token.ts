@@ -51,6 +51,7 @@ export interface ISpectaAppConfig {
   slidesTheme?: string;
   loadingName?: string;
   executionDelay?: number;
+  uis?: IUiOption[];
   labConfig?: {
     setSingleMode?: boolean;
     hideLeftPanel?: boolean;
