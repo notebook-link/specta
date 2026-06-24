@@ -1,9 +1,7 @@
 {
   "jupyter-config-data": {
     "enableMemoryStorage": true,
-    "contentsStorageDrivers": [
-      "memoryStorageDriver"
-    ],
+    "contentsStorageDrivers": ["memoryStorageDriver"],
     "spectaConfig": {
       "topBar": {
         "title": "Specta Tree"
@@ -41,8 +39,6 @@
         "hideHeader": false
       }
     },
-    "disabledExtensions": [
-      "@jupyterlab/notebook-extension:open-with-no-kernel"
-    ]
+    "disabledExtensions": ["@jupyterlab/notebook-extension:open-with-no-kernel"]
   }
 }
