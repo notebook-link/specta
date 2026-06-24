@@ -35,6 +35,10 @@ export const topbarPlugin: JupyterFrontEndPlugin<
     if (!isSpecta) {
       return { addTopbarWidget: undefined };
     }
+    console.log(
+      '%c SPECTA: Running local development version! (Mobile Layout Fixes Active) ',
+      'background: #ff3d00; color: #fff; font-size: 14px; font-weight: bold; border-radius: 4px; padding: 4px;'
+    );
     const urlParams = new URLSearchParams(window.location.search);
     const path = urlParams.get('path');
 
@@ -58,9 +62,16 @@ export const topbarPlugin: JupyterFrontEndPlugin<
       return widget;
     }
     const title = <TitleComponent config={config.topBar} />;
-    widget.addReactWidget(title, 'left', 0);
+    const titleWidget = widget.addReactWidget(title, 'left', 0);
+    if (titleWidget) {
+      titleWidget.addClass('specta-topbar-title-wrapper');
+    }
     const menu = (
-      <MenuComponent config={config.topBar} themeManager={themeManager} />
+      <MenuComponent
+        config={config.topBar}
+        themeManager={themeManager}
+        settingsWidgets={widget.settingsWidgets}
+      />
     );
     widget.addReactWidget(menu, 'right', 10000);
 

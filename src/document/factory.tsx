@@ -52,23 +52,39 @@ export class NotebookGridWidgetFactory extends ABCWidgetFactory<
       const isSpecta = isSpectaApp();
       if (!spectaConfig.hideTopbar) {
         const title = <TitleComponent config={spectaConfig.topBar} />;
+        let topbarWidget: ISpectaTopbarWidget | undefined = undefined;
+        let localTopbar: TopbarWidget | undefined = undefined;
+
+        if (!isSpecta) {
+          localTopbar = new TopbarWidget({
+            config: spectaConfig.topBar
+          });
+          topbarWidget = localTopbar;
+        } else {
+          topbarWidget = this._spectaTopbar;
+        }
+
         const menu = (
           <MenuComponent
             config={spectaConfig.topBar}
             themeManager={this._themeManager}
+            settingsWidgets={topbarWidget?.settingsWidgets}
           />
         );
-        if (!isSpecta) {
-          // Not a specta app, add topbar to document widget
-          const topbar = new TopbarWidget({
-            config: spectaConfig.topBar
-          });
-          topbar.addReactWidget(title, 'left', 0);
-          topbar.addReactWidget(menu, 'right', 10000);
-          content.addWidget(topbar);
+
+        if (!isSpecta && localTopbar) {
+          const titleWidget = localTopbar.addReactWidget(title, 'left', 0);
+          if (titleWidget) {
+            titleWidget.addClass('specta-topbar-title-wrapper');
+          }
+          localTopbar.addReactWidget(menu, 'right', 10000);
+          content.addWidget(localTopbar);
         } else {
           if (this._spectaTopbar.addReactWidget) {
-            this._spectaTopbar.addReactWidget(title, 'left', 0);
+            const titleWidget = this._spectaTopbar.addReactWidget(title, 'left', 0);
+            if (titleWidget) {
+              titleWidget.addClass('specta-topbar-title-wrapper');
+            }
             this._spectaTopbar.addReactWidget(menu, 'right', 10000);
           }
         }
