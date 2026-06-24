@@ -58,6 +58,8 @@
         "@jupyterlab/apputils-extension": "^4.6",
         "@jupyterlab/console": "^4.6",
         "@jupyterlab/console-extension": "^4.6",
+        "@jupyterlab/codemirror": "^4.6",
+        "@jupyterlab/codemirror-extension": "^4.6",
         "@jupyterlab/coreutils": "^6.4.2",
         "@jupyterlab/docmanager": "^4.6",
         "@jupyterlab/docmanager-extension": "^4.6",
