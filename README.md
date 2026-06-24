@@ -92,7 +92,7 @@ The following options are available:
 ```json
       "uiSwitcherOptions": [
         { "id": "lab", "label": "JupyterLab" },
-        { "id": "tree", "label": "Notebook" },
+        { "id": "notebooks", "label": "Notebook" },
         { "id": "specta", "label": "Specta" }
       ]
 ```

@@ -12,7 +12,7 @@
           "label": "JupyterLab"
         },
         {
-          "id": "tree",
+          "id": "notebooks",
           "label": "Notebook"
         },
         {

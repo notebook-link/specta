@@ -135,7 +135,7 @@ export const spectaUiSwitcher: JupyterFrontEndPlugin<ISpectaUiSwitcher> = {
     const globalConfig = rawConfig ? JSON.parse(rawConfig) : {};
     const uis: IUiOption[] = globalConfig.uiSwitcherOptions ?? [
       { id: 'lab', label: 'JupyterLab' },
-      { id: 'tree', label: 'Notebook' },
+      { id: 'notebooks', label: 'Notebook' },
       { id: 'specta', label: 'Specta' }
     ];
     return {
