@@ -1,21 +1,24 @@
 import { IThemeManager } from '@jupyterlab/apputils';
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Divider } from '../components/divider';
 import {
   ISpectaLayoutRegistry,
   ISpectaUiSwitcher,
-  ITopbarConfig
+  ITopbarConfig,
+  ISpectaWidget
 } from '../token';
+import { Widget } from '@lumino/widgets';
 
 export const SettingContent = (props: {
   config?: ITopbarConfig;
   themeManager?: IThemeManager;
   layoutRegistry?: ISpectaLayoutRegistry;
+  settingsWidgets?: ISpectaWidget[];
   uiSwitcher?: ISpectaUiSwitcher | null;
   currentPath?: string | null;
   currentUi?: string;
 }) => {
-  const { themeManager, layoutRegistry } = props;
+  const { themeManager, layoutRegistry, settingsWidgets } = props;
   const [themeOptions, setThemeOptions] = useState<string[]>([
     ...(themeManager?.themes ?? [])
   ]);
@@ -83,6 +86,42 @@ export const SettingContent = (props: {
     },
     [layoutRegistry]
   );
+  // Defer widget attachment to prevent 'pointerdown' violation warnings.
+  const frameRef = useRef<number | null>(null);
+
+  const customWidgetsRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      if (frameRef.current !== null) {
+        cancelAnimationFrame(frameRef.current);
+        frameRef.current = null;
+      }
+
+      if (node) {
+        node.innerHTML = '';
+        if (settingsWidgets) {
+          frameRef.current = requestAnimationFrame(() => {
+            settingsWidgets.forEach(w => {
+              if (w.isAttached) {
+                Widget.detach(w as Widget);
+              }
+              Widget.attach(w as Widget, node);
+            });
+            frameRef.current = null;
+          });
+        }
+      } else {
+        if (settingsWidgets) {
+          settingsWidgets.forEach(w => {
+            if (w.isAttached) {
+              Widget.detach(w as Widget);
+            }
+          });
+        }
+      }
+    },
+    [settingsWidgets]
+  );
+
   const { uiSwitcher, currentPath } = props;
   const onUiChange = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -96,7 +135,7 @@ export const SettingContent = (props: {
   return (
     <div style={{ padding: '0 10px' }}>
       <p style={{ marginTop: 0, marginBottom: '5px', fontSize: '1rem' }}>
-        SETTINGS
+        SPECTA MENU
       </p>
       <Divider />
       {(props.config?.layoutToggle !== undefined
@@ -179,6 +218,12 @@ export const SettingContent = (props: {
               })}
             </select>
           </div>
+        </div>
+      )}
+      {settingsWidgets && settingsWidgets.length > 0 && (
+        <div className="specta-settings-custom-section">
+          <Divider />
+          <div ref={customWidgetsRef} />
         </div>
       )}
     </div>
