@@ -87,6 +87,16 @@ The following options are available:
       },
 ```
 
+- `uiSwitcherOptions`: List of UI options shown in the settings dropdown, allowing users to switch between different interfaces. Each entry has an `id` (the URL segment of the target app) and a `label` (the display name). Defaults to JupyterLab, Notebook, and Specta as a fallback.
+
+```json
+      "uiSwitcherOptions": [
+        { "id": "lab", "label": "JupyterLab" },
+        { "id": "tree", "label": "Notebook" },
+        { "id": "specta", "label": "Specta" }
+      ]
+```
+
 - `perFileConfig`: an object with key is the file path and value is the above configuration, it's used to have different layout/top bar config for each files, for example:
 
 ```json

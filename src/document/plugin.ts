@@ -133,14 +133,15 @@ export const spectaUiSwitcher: JupyterFrontEndPlugin<ISpectaUiSwitcher> = {
   activate: (_app, urlFactory: ISpectaUrlFactory) => {
     const rawConfig = PageConfig.getOption('spectaConfig');
     const globalConfig = rawConfig ? JSON.parse(rawConfig) : {};
-    const uis: IUiOption[] = globalConfig.uis ?? [
+    const uis: IUiOption[] = globalConfig.uiSwitcherOptions ?? [
       { id: 'lab', label: 'JupyterLab' },
+      { id: 'tree', label: 'Notebook' },
       { id: 'specta', label: 'Specta' }
     ];
     return {
       uis,
       switchTo: (path: string, ui: string) => {
-        window.location.assign(urlFactory(path, ui));
+        window.open(urlFactory(path, ui), '_blank');
       }
     };
   }

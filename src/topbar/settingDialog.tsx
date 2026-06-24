@@ -164,7 +164,7 @@ export const SettingContent = (props: {
             <select
               className=" jp-mod-styled specta-topbar-theme"
               onChange={onUiChange}
-              defaultValue={props.currentUi}
+              value={props.currentUi}
             >
               {uiSwitcher.uis.map(ui => {
                 return (

@@ -1,11 +1,27 @@
 {
   "jupyter-config-data": {
     "enableMemoryStorage": true,
-    "contentsStorageDrivers": ["memoryStorageDriver"],
+    "contentsStorageDrivers": [
+      "memoryStorageDriver"
+    ],
     "spectaConfig": {
       "topBar": {
         "title": "Specta Tree"
       },
+      "uiSwitcherOptions": [
+        {
+          "id": "lab",
+          "label": "JupyterLab"
+        },
+        {
+          "id": "tree",
+          "label": "Notebook"
+        },
+        {
+          "id": "specta",
+          "label": "Specta"
+        }
+      ],
       "defaultLayout": "default",
       "perFileConfig": {
         "blog.ipynb": {
@@ -26,8 +42,7 @@
       }
     },
     "disabledExtensions": [
-      "@jupyterlab/notebook-extension:open-with-no-kernel",
-      "@jupyterlite/application-extension:opener"
+      "@jupyterlab/notebook-extension:open-with-no-kernel"
     ]
   }
 }
