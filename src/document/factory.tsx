@@ -8,7 +8,8 @@ import { SpectaWidgetFactory } from '../specta_widget_factory';
 import {
   ISpectaLayoutRegistry,
   ISpectaShell,
-  ISpectaTopbarWidget
+  ISpectaTopbarWidget,
+  ISpectaUiSwitcher
 } from '../token';
 import { isSpectaApp, readSpectaConfig } from '../tool';
 import { MenuComponent } from '../topbar/menuComponent';
@@ -23,6 +24,7 @@ interface IOptions extends DocumentRegistry.IWidgetFactoryOptions {
   shell: ISpectaShell;
   spectaLayoutRegistry: ISpectaLayoutRegistry;
   spectaTopbar: ISpectaTopbarWidget;
+  uiSwitcher?: ISpectaUiSwitcher | null;
 }
 
 export class NotebookGridWidgetFactory extends ABCWidgetFactory<
@@ -35,6 +37,7 @@ export class NotebookGridWidgetFactory extends ABCWidgetFactory<
     this._shell = options.shell;
     this._themeManager = options.themeManager;
     this._spectaTopbar = options.spectaTopbar;
+    this._uiSwitcher = options.uiSwitcher;
   }
 
   protected createNewWidget(
@@ -56,6 +59,9 @@ export class NotebookGridWidgetFactory extends ABCWidgetFactory<
           <MenuComponent
             config={spectaConfig.topBar}
             themeManager={this._themeManager}
+            uiSwitcher={this._uiSwitcher}
+            currentPath={path}
+            currentUi={isSpecta ? 'specta' : 'lab'}
           />
         );
         if (!isSpecta) {
@@ -97,4 +103,5 @@ export class NotebookGridWidgetFactory extends ABCWidgetFactory<
   private _shell: ISpectaShell;
   private _themeManager?: IThemeManager;
   private _spectaTopbar: ISpectaTopbarWidget;
+  private _uiSwitcher?: ISpectaUiSwitcher | null;
 }
