@@ -5,7 +5,7 @@
 - Create a Conda environment
 
 ```bash
-mamba create -n specta-dev python nodejs jupyterlab "jupyterlite-core>=0.7.0" "jupyterlite-xeus>=4.0.0"
+mamba create -n specta-dev python nodejs jupyterlab "jupyterlite-core>=0.7" "jupyterlite-xeus>=4.0.0"
 mamba activate specta-dev
 ```
 
