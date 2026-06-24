@@ -117,7 +117,7 @@ export const SettingContent = (props: {
   return (
     <div style={{ padding: '0 10px' }}>
       <p style={{ marginTop: 0, marginBottom: '5px', fontSize: '1rem' }}>
-        SETTINGS
+        SPECTA MENU
       </p>
       <Divider />
       {(props.config?.layoutToggle !== undefined
