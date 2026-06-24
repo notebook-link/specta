@@ -4,12 +4,15 @@ import React, { useState, useRef, useEffect } from 'react';
 import { GearIcon } from '../components/icon/gear';
 import { IconButton } from '../components/iconButton';
 import { SettingContent } from './settingDialog';
-import { ITopbarConfig, ISpectaWidget } from '../token';
+import { ISpectaUiSwitcher, ITopbarConfig, ISpectaWidget } from '../token';
 
 interface IProps {
   config?: ITopbarConfig;
   themeManager?: IThemeManager;
   settingsWidgets?: ISpectaWidget[];
+  uiSwitcher?: ISpectaUiSwitcher | null;
+  currentPath?: string | null;
+  currentUi?: string;
 }
 
 export function MenuComponent(props: IProps): JSX.Element {
@@ -48,6 +51,9 @@ export function MenuComponent(props: IProps): JSX.Element {
             config={props.config}
             themeManager={props.themeManager}
             settingsWidgets={props.settingsWidgets}
+            uiSwitcher={props.uiSwitcher}
+            currentPath={props.currentPath}
+            currentUi={props.currentUi}
           />
         </div>
       )}

@@ -1,7 +1,12 @@
 import { IThemeManager } from '@jupyterlab/apputils';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Divider } from '../components/divider';
-import { ISpectaLayoutRegistry, ITopbarConfig, ISpectaWidget } from '../token';
+import {
+  ISpectaLayoutRegistry,
+  ISpectaUiSwitcher,
+  ITopbarConfig,
+  ISpectaWidget
+} from '../token';
 import { Widget } from '@lumino/widgets';
 
 export const SettingContent = (props: {
@@ -9,6 +14,9 @@ export const SettingContent = (props: {
   themeManager?: IThemeManager;
   layoutRegistry?: ISpectaLayoutRegistry;
   settingsWidgets?: ISpectaWidget[];
+  uiSwitcher?: ISpectaUiSwitcher | null;
+  currentPath?: string | null;
+  currentUi?: string;
 }) => {
   const { themeManager, layoutRegistry, settingsWidgets } = props;
   const [themeOptions, setThemeOptions] = useState<string[]>([
@@ -114,6 +122,16 @@ export const SettingContent = (props: {
     [settingsWidgets]
   );
 
+  const { uiSwitcher, currentPath } = props;
+  const onUiChange = useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      const ui = e.currentTarget?.value;
+      if (ui && uiSwitcher && currentPath) {
+        uiSwitcher.switchTo(currentPath, ui);
+      }
+    },
+    [uiSwitcher, currentPath]
+  );
   return (
     <div style={{ padding: '0 10px' }}>
       <p style={{ marginTop: 0, marginBottom: '5px', fontSize: '1rem' }}>
@@ -178,6 +196,30 @@ export const SettingContent = (props: {
             </div>
           </div>
         )}
+      {currentPath && uiSwitcher && uiSwitcher.uis.length > 0 && (
+        <div>
+          <label htmlFor="">Select UI</label>
+          <div className="jp-select-wrapper">
+            <select
+              className=" jp-mod-styled specta-topbar-theme"
+              onChange={onUiChange}
+              value={props.currentUi}
+            >
+              {uiSwitcher.uis.map(ui => {
+                return (
+                  <option
+                    key={ui.id}
+                    value={ui.id}
+                    style={{ background: 'var(--jp-layout-color2)' }}
+                  >
+                    {ui.label}
+                  </option>
+                );
+              })}
+            </select>
+          </div>
+        </div>
+      )}
       {settingsWidgets && settingsWidgets.length > 0 && (
         <div className="specta-settings-custom-section">
           <Divider />

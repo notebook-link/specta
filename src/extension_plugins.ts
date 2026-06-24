@@ -1,6 +1,7 @@
 import {
   spectaDocument,
   spectaOpener,
+  spectaUiSwitcher,
   spectaUrlFactory
 } from './document/plugin';
 import { spectaLayoutRegistry } from './layout';
@@ -17,5 +18,6 @@ export default [
   topbarPlugin,
   appMeta,
   cellMeta,
-  spectaUrlFactory
+  spectaUrlFactory,
+  spectaUiSwitcher
 ];

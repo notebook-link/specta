@@ -19,6 +19,7 @@ import {
   ISpectaLayoutRegistry,
   ISpectaShell,
   ISpectaTopbarWidget,
+  ISpectaUiSwitcher,
   ISpectaUrlFactory
 } from './token';
 
@@ -57,6 +58,7 @@ export function registerDocumentFactory(options: {
   themeManager?: IThemeManager;
   spectaTopbar: ISpectaTopbarWidget;
   kernelSpecManager: KernelSpec.IManager;
+  uiSwitcher?: ISpectaUiSwitcher | null;
 }) {
   const {
     factoryName,
@@ -69,7 +71,8 @@ export function registerDocumentFactory(options: {
     spectaLayoutRegistry,
     themeManager,
     spectaTopbar,
-    kernelSpecManager
+    kernelSpecManager,
+    uiSwitcher
   } = options;
 
   const spectaWidgetFactory = new SpectaWidgetFactory({
@@ -90,7 +93,8 @@ export function registerDocumentFactory(options: {
     spectaWidgetFactory,
     themeManager,
     spectaLayoutRegistry,
-    spectaTopbar
+    spectaTopbar,
+    uiSwitcher
   });
 
   // Registering the widget factory
@@ -134,7 +138,8 @@ export function registerDocumentFactory(options: {
       spectaWidgetFactory,
       themeManager,
       spectaLayoutRegistry,
-      spectaTopbar
+      spectaTopbar,
+      uiSwitcher
     });
 
     app.docRegistry.addWidgetFactory(plainbWidgetFactory);
