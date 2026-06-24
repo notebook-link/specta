@@ -6,6 +6,20 @@
       "topBar": {
         "title": "Specta Tree"
       },
+      "uiSwitcherOptions": [
+        {
+          "id": "lab",
+          "label": "JupyterLab"
+        },
+        {
+          "id": "notebooks",
+          "label": "Notebook"
+        },
+        {
+          "id": "specta",
+          "label": "Specta"
+        }
+      ],
       "defaultLayout": "default",
       "perFileConfig": {
         "blog.ipynb": {
@@ -25,9 +39,6 @@
         "hideHeader": false
       }
     },
-    "disabledExtensions": [
-      "@jupyterlab/notebook-extension:open-with-no-kernel",
-      "@jupyterlite/application-extension:opener"
-    ]
+    "disabledExtensions": ["@jupyterlab/notebook-extension:open-with-no-kernel"]
   }
 }
