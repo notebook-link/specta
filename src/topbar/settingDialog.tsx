@@ -81,35 +81,38 @@ export const SettingContent = (props: {
   // Defer widget attachment to prevent 'pointerdown' violation warnings.
   const frameRef = useRef<number | null>(null);
 
-  const customWidgetsRef = useCallback((node: HTMLDivElement | null) => {
-    if (frameRef.current !== null) {
-      cancelAnimationFrame(frameRef.current);
-      frameRef.current = null;
-    }
+  const customWidgetsRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      if (frameRef.current !== null) {
+        cancelAnimationFrame(frameRef.current);
+        frameRef.current = null;
+      }
 
-    if (node) {
-      node.innerHTML = '';
-      if (settingsWidgets) {
-        frameRef.current = requestAnimationFrame(() => {
+      if (node) {
+        node.innerHTML = '';
+        if (settingsWidgets) {
+          frameRef.current = requestAnimationFrame(() => {
+            settingsWidgets.forEach(w => {
+              if (w.isAttached) {
+                Widget.detach(w as Widget);
+              }
+              Widget.attach(w as Widget, node);
+            });
+            frameRef.current = null;
+          });
+        }
+      } else {
+        if (settingsWidgets) {
           settingsWidgets.forEach(w => {
             if (w.isAttached) {
               Widget.detach(w as Widget);
             }
-            Widget.attach(w as Widget, node);
           });
-          frameRef.current = null;
-        });
+        }
       }
-    } else {
-      if (settingsWidgets) {
-        settingsWidgets.forEach(w => {
-          if (w.isAttached) {
-            Widget.detach(w as Widget);
-          }
-        });
-      }
-    }
-  }, [settingsWidgets]);
+    },
+    [settingsWidgets]
+  );
 
   return (
     <div style={{ padding: '0 10px' }}>

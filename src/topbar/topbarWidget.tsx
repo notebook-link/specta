@@ -26,12 +26,20 @@ export class TopbarWidget extends Panel {
     this.addWidget(this._rightSide);
   }
 
-  addReactWidget(el: JSX.Element, side: 'left' | 'right', rank: number): Widget {
+  addReactWidget(
+    el: JSX.Element,
+    side: 'left' | 'right',
+    rank: number
+  ): Widget {
     const widget = ReactWidget.create(el);
     this.addTopbarWidget(widget, side, rank);
     return widget;
   }
-  addTopbarWidget(widget: ISpectaWidget, side: 'left' | 'right', rank: number): void {
+  addTopbarWidget(
+    widget: ISpectaWidget,
+    side: 'left' | 'right',
+    rank: number
+  ): void {
     if (side === 'left') {
       this._leftSide.addWidget(widget as Widget, rank);
     } else {

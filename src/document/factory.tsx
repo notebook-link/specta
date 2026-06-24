@@ -81,7 +81,11 @@ export class NotebookGridWidgetFactory extends ABCWidgetFactory<
           content.addWidget(localTopbar);
         } else {
           if (this._spectaTopbar.addReactWidget) {
-            const titleWidget = this._spectaTopbar.addReactWidget(title, 'left', 0);
+            const titleWidget = this._spectaTopbar.addReactWidget(
+              title,
+              'left',
+              0
+            );
             if (titleWidget) {
               titleWidget.addClass('specta-topbar-title-wrapper');
             }
