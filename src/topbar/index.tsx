@@ -35,10 +35,6 @@ export const topbarPlugin: JupyterFrontEndPlugin<
     if (!isSpecta) {
       return { addTopbarWidget: undefined };
     }
-    console.log(
-      '%c SPECTA: Running local development version! (Mobile Layout Fixes Active) ',
-      'background: #ff3d00; color: #fff; font-size: 14px; font-weight: bold; border-radius: 4px; padding: 4px;'
-    );
     const urlParams = new URLSearchParams(window.location.search);
     const path = urlParams.get('path');
 
