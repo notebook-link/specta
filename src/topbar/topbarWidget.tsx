@@ -1,7 +1,7 @@
 import { ReactWidget } from '@jupyterlab/apputils';
 import { Panel, Widget } from '@lumino/widgets';
 
-import { ITopbarConfig } from '../token';
+import { ITopbarConfig, ISpectaWidget } from '../token';
 import { RankedPanel } from './rankedPanel';
 
 export class TopbarWidget extends Panel {
@@ -26,20 +26,38 @@ export class TopbarWidget extends Panel {
     this.addWidget(this._rightSide);
   }
 
-  addReactWidget(el: JSX.Element, side: 'left' | 'right', rank: number): void {
+  addReactWidget(
+    el: JSX.Element,
+    side: 'left' | 'right',
+    rank: number
+  ): Widget {
     const widget = ReactWidget.create(el);
     this.addTopbarWidget(widget, side, rank);
+    return widget;
   }
-  addTopbarWidget(widget: Widget, side: 'left' | 'right', rank: number): void {
+  addTopbarWidget(
+    widget: ISpectaWidget,
+    side: 'left' | 'right',
+    rank: number
+  ): void {
     if (side === 'left') {
-      this._leftSide.addWidget(widget, rank);
+      this._leftSide.addWidget(widget as Widget, rank);
     } else {
-      this._rightSide.addWidget(widget, rank);
+      this._rightSide.addWidget(widget as Widget, rank);
     }
+  }
+
+  addSettingsWidget(widget: ISpectaWidget): void {
+    this._settingsWidgets.push(widget);
+  }
+
+  get settingsWidgets(): ISpectaWidget[] {
+    return this._settingsWidgets;
   }
 
   private _leftSide = new RankedPanel();
   private _rightSide = new RankedPanel();
+  private _settingsWidgets: ISpectaWidget[] = [];
 
   private _config: ITopbarConfig;
 }

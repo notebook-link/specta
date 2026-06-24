@@ -62,11 +62,15 @@ export const topbarPlugin: JupyterFrontEndPlugin<
       return widget;
     }
     const title = <TitleComponent config={config.topBar} />;
-    widget.addReactWidget(title, 'left', 0);
+    const titleWidget = widget.addReactWidget(title, 'left', 0);
+    if (titleWidget) {
+      titleWidget.addClass('specta-topbar-title-wrapper');
+    }
     const menu = (
       <MenuComponent
         config={config.topBar}
         themeManager={themeManager}
+        settingsWidgets={widget.settingsWidgets}
         uiSwitcher={uiSwitcher}
         currentPath={path}
         currentUi={isSpecta ? 'specta' : 'lab'}

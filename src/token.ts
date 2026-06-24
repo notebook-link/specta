@@ -90,9 +90,14 @@ export const ISpectaUiSwitcherToken = new Token<ISpectaUiSwitcher>(
   'specta:ISpectaUiSwitcherToken'
 );
 
+export interface ISpectaWidget {
+  readonly node: HTMLElement;
+  readonly isAttached: boolean;
+}
+
 export interface ISpectaTopbarWidget {
   addTopbarWidget?: (
-    widget: Widget,
+    widget: ISpectaWidget,
     side: 'left' | 'right',
     rank: number
   ) => void;
@@ -100,7 +105,9 @@ export interface ISpectaTopbarWidget {
     widget: JSX.Element,
     side: 'left' | 'right',
     rank: number
-  ) => void;
+  ) => Widget;
+  addSettingsWidget?: (widget: ISpectaWidget) => void;
+  settingsWidgets?: ISpectaWidget[];
 }
 export const ISpectaTopbarWidgetToken = new Token<ISpectaTopbarWidget>(
   'specta:ISpectaTopbarWidget'
