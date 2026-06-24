@@ -2,11 +2,30 @@
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
+## 0.5.0
+
+([Full Changelog](https://github.com/notebook-link/specta/compare/v0.4.10...31899d38388c288c50658400d6d6271af2a923c8))
+
+### Merged PRs
+
+- Improve mobile view [#54](https://github.com/notebook-link/specta/pull/54) ([@Yahiewi](https://github.com/Yahiewi), [@trungleduc](https://github.com/trungleduc))
+- Update lite packages [#53](https://github.com/notebook-link/specta/pull/53) ([@martinRenou](https://github.com/martinRenou), [@trungleduc](https://github.com/trungleduc))
+- Add Select UI dropdown in settings [#52](https://github.com/notebook-link/specta/pull/52) ([@Yahiewi](https://github.com/Yahiewi), [@martinRenou](https://github.com/martinRenou), [@trungleduc](https://github.com/trungleduc))
+
+### Contributors to this release
+
+The following people contributed discussions, new ideas, code and documentation contributions, and review.
+See [our definition of contributors](https://github-activity.readthedocs.io/en/latest/use/#how-does-this-tool-define-contributions-in-the-reports).
+
+([GitHub contributors page for this release](https://github.com/notebook-link/specta/graphs/contributors?from=2026-06-11&to=2026-06-24&type=c))
+
+@martinRenou ([activity](https://github.com/search?q=repo%3Anotebook-link%2Fspecta+involves%3AmartinRenou+updated%3A2026-06-11..2026-06-24&type=Issues)) | @trungleduc ([activity](https://github.com/search?q=repo%3Anotebook-link%2Fspecta+involves%3Atrungleduc+updated%3A2026-06-11..2026-06-24&type=Issues)) | @Yahiewi ([activity](https://github.com/search?q=repo%3Anotebook-link%2Fspecta+involves%3AYahiewi+updated%3A2026-06-11..2026-06-24&type=Issues))
+
+<!-- <END NEW CHANGELOG ENTRY> -->
+
 ## 0.4.10
 
 No merged PRs
-
-<!-- <END NEW CHANGELOG ENTRY> -->
 
 ## 0.4.9
 
