@@ -74,6 +74,7 @@ export type ISpectaUrlFactory = (path: string, ui?: string) => string;
 export interface ISpectaUiSwitcher {
   uis: IUiOption[];
   switchTo: (path: string, ui: string) => void;
+  label?: string;
 }
 export const ISpectaLayoutRegistry = new Token<ISpectaLayoutRegistry>(
   'specta:ISpectaLayoutRegistry'
@@ -108,6 +109,8 @@ export interface ISpectaTopbarWidget {
   ) => Widget;
   addSettingsWidget?: (widget: ISpectaWidget) => void;
   settingsWidgets?: ISpectaWidget[];
+  setSettingsIcon?: (icon: JSX.Element) => void;
+  customIcon?: JSX.Element;
 }
 export const ISpectaTopbarWidgetToken = new Token<ISpectaTopbarWidget>(
   'specta:ISpectaTopbarWidget'

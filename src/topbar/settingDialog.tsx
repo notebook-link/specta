@@ -198,7 +198,7 @@ export const SettingContent = (props: {
         )}
       {currentPath && uiSwitcher && uiSwitcher.uis.length > 0 && (
         <div>
-          <label htmlFor="">Select UI</label>
+          <label htmlFor="">{uiSwitcher.label ?? 'Select UI'}</label>
           <div className="jp-select-wrapper">
             <select
               className=" jp-mod-styled specta-topbar-theme"
