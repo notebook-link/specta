@@ -1,5 +1,6 @@
 import { IThemeManager } from '@jupyterlab/apputils';
 import React, { useState, useRef, useEffect } from 'react';
+import { ISignal } from '@lumino/signaling';
 
 import { GearIcon } from '../components/icon/gear';
 import { IconButton } from '../components/iconButton';
@@ -13,12 +14,21 @@ interface IProps {
   uiSwitcher?: ISpectaUiSwitcher | null;
   currentPath?: string | null;
   currentUi?: string;
+  settingsIconChanged?: ISignal<any, JSX.Element>;
+  customIcon?: JSX.Element;
 }
 
 export function MenuComponent(props: IProps): JSX.Element {
   const [open, setOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
+  const [customIcon, setCustomIcon] = useState<JSX.Element | undefined>(
+    props.customIcon
+  );
+
+  useEffect(() => {
+    setCustomIcon(props.customIcon);
+  }, [props.customIcon]);
 
   useEffect(() => {
     const handleClickOutside = (e: any) => {
@@ -34,14 +44,31 @@ export function MenuComponent(props: IProps): JSX.Element {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    const signal = props.settingsIconChanged;
+    if (!signal) {
+      return;
+    }
+    const handler = (_sender: any, icon: JSX.Element) => {
+      setCustomIcon(icon);
+    };
+    signal.connect(handler);
+    return () => {
+      signal.disconnect(handler);
+    };
+  }, [props.settingsIconChanged]);
+
+  const menuIcon = customIcon || (
+    <GearIcon fill="var(--jp-ui-font-color2)" height={23} width={23} />
+  );
+
   return (
     <div className="specta-topbar-right">
       <IconButton
         ref={buttonRef}
         onClick={() => setOpen(!open)}
-        icon={
-          <GearIcon fill="var(--jp-ui-font-color2)" height={23} width={23} />
-        }
+        icon={menuIcon}
       />
 
       {open && (

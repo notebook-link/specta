@@ -66,6 +66,7 @@ export class NotebookGridWidgetFactory extends ABCWidgetFactory<
         } else {
           topbarWidget = this._spectaTopbar;
         }
+        const topbar = topbarWidget as TopbarWidget | undefined;
 
         const menu = (
           <MenuComponent
@@ -75,6 +76,8 @@ export class NotebookGridWidgetFactory extends ABCWidgetFactory<
             uiSwitcher={this._uiSwitcher}
             currentPath={path}
             currentUi={isSpecta ? 'specta' : 'lab'}
+            settingsIconChanged={topbar?.settingsIconChanged}
+            customIcon={topbarWidget?.customIcon}
           />
         );
 

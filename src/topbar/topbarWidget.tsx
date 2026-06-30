@@ -1,5 +1,6 @@
 import { ReactWidget } from '@jupyterlab/apputils';
 import { Panel, Widget } from '@lumino/widgets';
+import { Signal, ISignal } from '@lumino/signaling';
 
 import { ITopbarConfig, ISpectaWidget } from '../token';
 import { RankedPanel } from './rankedPanel';
@@ -55,9 +56,24 @@ export class TopbarWidget extends Panel {
     return this._settingsWidgets;
   }
 
+  setSettingsIcon(icon: JSX.Element): void {
+    this._customIcon = icon;
+    this._settingsIconChanged.emit(icon);
+  }
+
+  get settingsIconChanged(): ISignal<this, JSX.Element> {
+    return this._settingsIconChanged;
+  }
+
+  get customIcon(): JSX.Element | undefined {
+    return this._customIcon;
+  }
+
   private _leftSide = new RankedPanel();
   private _rightSide = new RankedPanel();
   private _settingsWidgets: ISpectaWidget[] = [];
+  private _settingsIconChanged = new Signal<this, JSX.Element>(this);
+  private _customIcon: JSX.Element | undefined;
 
   private _config: ITopbarConfig;
 }
