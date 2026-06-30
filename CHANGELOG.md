@@ -2,6 +2,25 @@
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
+## 0.5.1
+
+([Full Changelog](https://github.com/notebook-link/specta/compare/v0.5.0...b21443d84091a48d9d48491a9248b8f73687ab62))
+
+### Merged PRs
+
+- Add custom settings icon API [#56](https://github.com/notebook-link/specta/pull/56) ([@Yahiewi](https://github.com/Yahiewi), [@martinRenou](https://github.com/martinRenou))
+
+### Contributors to this release
+
+The following people contributed discussions, new ideas, code and documentation contributions, and review.
+See [our definition of contributors](https://github-activity.readthedocs.io/en/latest/use/#how-does-this-tool-define-contributions-in-the-reports).
+
+([GitHub contributors page for this release](https://github.com/notebook-link/specta/graphs/contributors?from=2026-06-24&to=2026-06-30&type=c))
+
+@martinRenou ([activity](https://github.com/search?q=repo%3Anotebook-link%2Fspecta+involves%3AmartinRenou+updated%3A2026-06-24..2026-06-30&type=Issues)) | @Yahiewi ([activity](https://github.com/search?q=repo%3Anotebook-link%2Fspecta+involves%3AYahiewi+updated%3A2026-06-24..2026-06-30&type=Issues))
+
+<!-- <END NEW CHANGELOG ENTRY> -->
+
 ## 0.5.0
 
 ([Full Changelog](https://github.com/notebook-link/specta/compare/v0.4.10...31899d38388c288c50658400d6d6271af2a923c8))
@@ -20,8 +39,6 @@ See [our definition of contributors](https://github-activity.readthedocs.io/en/l
 ([GitHub contributors page for this release](https://github.com/notebook-link/specta/graphs/contributors?from=2026-06-11&to=2026-06-24&type=c))
 
 @martinRenou ([activity](https://github.com/search?q=repo%3Anotebook-link%2Fspecta+involves%3AmartinRenou+updated%3A2026-06-11..2026-06-24&type=Issues)) | @trungleduc ([activity](https://github.com/search?q=repo%3Anotebook-link%2Fspecta+involves%3Atrungleduc+updated%3A2026-06-11..2026-06-24&type=Issues)) | @Yahiewi ([activity](https://github.com/search?q=repo%3Anotebook-link%2Fspecta+involves%3AYahiewi+updated%3A2026-06-11..2026-06-24&type=Issues))
-
-<!-- <END NEW CHANGELOG ENTRY> -->
 
 ## 0.4.10
 
