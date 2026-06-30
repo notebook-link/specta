@@ -22,7 +22,9 @@ export function MenuComponent(props: IProps): JSX.Element {
   const [open, setOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
-  const [customIcon, setCustomIcon] = useState<JSX.Element | undefined>(props.customIcon);
+  const [customIcon, setCustomIcon] = useState<JSX.Element | undefined>(
+    props.customIcon
+  );
 
   useEffect(() => {
     setCustomIcon(props.customIcon);
