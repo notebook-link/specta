@@ -233,3 +233,36 @@
     display: block;
   }
 }
+
+/* Sleek, unobtrusive scrollbars */
+.specta-app-widget,
+.jp-specta-notebook-panel,
+.specta-article-host-widget,
+.jp-Notebook,
+.jp-Cell,
+.jp-OutputArea,
+.jp-InputArea-editor,
+pre,
+code {
+  scrollbar-width: thin;
+  scrollbar-color: var(--jp-border-color2, rgba(0, 0, 0, 0.2)) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--jp-border-color2, rgba(0, 0, 0, 0.2));
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--jp-border-color1, rgba(0, 0, 0, 0.4));
+}
+
