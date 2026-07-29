@@ -284,6 +284,12 @@ export function readSpectaConfig({
 
   const spectaMetadata = JSON.parse(JSON.stringify(nbMetadata?.specta ?? {}));
 
+  if (spectaMetadata.showBorders === 'Yes') {
+    spectaMetadata.showBorders = true;
+  } else if (spectaMetadata.showBorders === 'No') {
+    spectaMetadata.showBorders = false;
+  }
+
   if (spectaMetadata.hideTopbar === 'Yes') {
     spectaMetadata.hideTopbar = true;
   } else if (spectaMetadata.hideTopbar === 'No') {

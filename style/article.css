@@ -95,11 +95,22 @@
     text-decoration: underline;
   }
 
+  &.specta-show-borders {
+    pre,
+    .jp-InputArea-editor {
+      border: 1px solid var(--jp-cell-editor-border-color) !important;
+    }
+    .jp-OutputArea {
+      border: 1px solid var(--jp-border-color2, var(--jp-cell-editor-border-color)) !important;
+      border-radius: 4px;
+    }
+  }
+
   pre {
     background-color: var(--jp-cell-editor-background) !important;
     padding: 32px !important;
     border-radius: 4px !important;
-    border: 1px solid var(--jp-cell-editor-border-color) !important;
+    border: none !important;
     overflow-x: auto;
     margin: 0 !important;
     margin-top: 56px !important;
@@ -203,6 +214,7 @@
   .jp-InputArea-editor {
     padding: 32px !important;
     border-radius: 4px !important;
+    border: none !important;
     background-color: var(--jp-cell-editor-background) !important;
   }
   .jp-InputArea-editor > div.cm-editor {

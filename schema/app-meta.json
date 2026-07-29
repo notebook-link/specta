@@ -51,10 +51,20 @@
               "white"
             ],
             "default": null
+          },
+          "/specta/showBorders": {
+            "title": "Show cell borders",
+            "type": "string",
+            "enum": ["Yes", "No"],
+            "default": "No"
           }
         }
       },
       "metadataOptions": {
+        "/specta/showBorders": {
+          "metadataLevel": "notebook",
+          "writeDefault": false
+        },
         "/specta/hideTopbar": {
           "metadataLevel": "notebook",
           "writeDefault": false

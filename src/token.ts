@@ -48,6 +48,7 @@ export interface ISpectaAppConfig {
   topBar?: ITopbarConfig;
   defaultLayout?: string;
   hideTopbar?: boolean;
+  showBorders?: boolean;
   slidesTheme?: string;
   loadingName?: string;
   executionDelay?: number;
