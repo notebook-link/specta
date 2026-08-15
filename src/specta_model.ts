@@ -31,7 +31,7 @@ import {
   createNotebookPanel
 } from './create_notebook_panel';
 import { SpectaCellOutput } from './specta_cell_output';
-import { emitResizeEvent, readCellConfig } from './tool';
+import { emitResizeEvent, ISpectaSnapshotData, readCellConfig } from './tool';
 import { ISignal, Signal } from '@lumino/signaling';
 
 export class AppModel {
@@ -223,6 +223,14 @@ export class AppModel {
     return rep;
   }
 
+  async saveSnapshotToMetadata(snapshot: ISpectaSnapshotData): Promise<void> {
+    if (this.options.context) {
+      console.log('saveSnapshotToMetadata', this.options.context.path);
+      this.options.context.model.setMetadata('spectaSnapshot', snapshot);
+      await this.options.context.save();
+      this.options.context.model.dirty = false;
+    }
+  }
   private _kernelReady = new PromiseDelegate<void>();
 
   private _notebookPanel?: NotebookPanel;

@@ -13,6 +13,7 @@ import { CommandRegistry } from '@lumino/commands';
 import { NotebookGridWidgetFactory } from './document/factory';
 import { PlainbNotebookModelFactory } from './document/plainb_factory';
 import { SpectaWidgetFactory } from './specta_widget_factory';
+
 import {
   ISpectaAppConfig,
   ISpectaCellConfig,
@@ -22,6 +23,7 @@ import {
   ISpectaUiSwitcher,
   ISpectaUrlFactory
 } from './token';
+import { PartialJSONValue } from '@lumino/coreutils';
 
 export const PLAINB_PREFIX = 'ptjnb-';
 
@@ -452,4 +454,26 @@ export function openDocument(
   if (widget) {
     shell.add(widget, 'main');
   }
+}
+
+export const WIDGET_STATE_MIMETYPE =
+  'application/vnd.jupyter.widget-state+json';
+export const WIDGET_VIEW_MIMETYPE = 'application/vnd.jupyter.widget-view+json';
+
+export interface IWidgetManagerState {
+  version_major: number;
+  version_minor: number;
+  state: { [modelId: string]: unknown };
+}
+
+export interface IWidgetManagerLike {
+  get_state(options?: {
+    drop_defaults?: boolean;
+  }): Promise<IWidgetManagerState>;
+}
+
+export interface ISpectaSnapshotData {
+  notebook?: PartialJSONValue;
+  outputModels: Record<string, any>;
+  widgetStates: IWidgetManagerState | null;
 }

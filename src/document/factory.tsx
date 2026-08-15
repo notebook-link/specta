@@ -4,6 +4,8 @@ import { INotebookModel } from '@jupyterlab/notebook';
 import { Panel } from '@lumino/widgets';
 import * as React from 'react';
 
+import { ExportIcon } from '../components/icon/export';
+import { IconButton } from '../components/iconButton';
 import { SpectaWidgetFactory } from '../specta_widget_factory';
 import {
   ISpectaLayoutRegistry,
@@ -53,6 +55,7 @@ export class NotebookGridWidgetFactory extends ABCWidgetFactory<
         nbPath: path
       });
       const isSpecta = isSpectaApp();
+      let topbarTarget: ISpectaTopbarWidget | undefined;
       if (!spectaConfig.hideTopbar) {
         const title = <TitleComponent config={spectaConfig.topBar} />;
         let topbarWidget: ISpectaTopbarWidget | undefined = undefined;
@@ -88,6 +91,7 @@ export class NotebookGridWidgetFactory extends ABCWidgetFactory<
           }
           localTopbar.addReactWidget(menu, 'right', 10000);
           content.addWidget(localTopbar);
+          topbarTarget = localTopbar;
         } else {
           if (this._spectaTopbar.addReactWidget) {
             const titleWidget = this._spectaTopbar.addReactWidget(
@@ -111,6 +115,21 @@ export class NotebookGridWidgetFactory extends ABCWidgetFactory<
 
       if (spectaWidget) {
         content.addWidget(spectaWidget);
+        if (topbarTarget?.addReactWidget) {
+          const button = (
+            <IconButton
+              onClick={async () => await spectaWidget.saveSnapshot()}
+              icon={
+                <ExportIcon
+                  fill="var(--jp-ui-font-color2)"
+                  height={23}
+                  width={23}
+                />
+              }
+            />
+          );
+          topbarTarget.addReactWidget(button, 'right', 9999);
+        }
       }
     });
 

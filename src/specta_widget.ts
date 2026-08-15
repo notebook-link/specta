@@ -10,7 +10,15 @@ import {
   ISpectaLayout,
   ISpectaLayoutRegistry
 } from './token';
-import { emitResizeEvent, hideAppLoadingIndicator, isSpectaApp } from './tool';
+import {
+  emitResizeEvent,
+  hideAppLoadingIndicator,
+  ISpectaSnapshotData,
+  isSpectaApp,
+  IWidgetManagerLike,
+  WIDGET_VIEW_MIMETYPE
+} from './tool';
+import { SimplifiedOutputArea } from '@jupyterlab/outputarea';
 
 export class AppWidget extends Panel {
   constructor(options: AppWidget.IOptions) {
@@ -163,6 +171,79 @@ export class AppWidget extends Panel {
 
     emitResizeEvent();
     this.removeSpinner();
+  }
+
+  async saveSnapshot(): Promise<void> {
+    const notebook = this._model.context?.model.toJSON() as any;
+    if (notebook?.['metadata']?.['spectaSnapshot']) {
+      delete notebook['metadata']['spectaSnapshot'];
+    }
+    const snapshot: ISpectaSnapshotData = {
+      notebook: this._model.context?.model.toJSON(),
+      outputModels: {},
+      widgetStates: null
+    };
+    const allCodeCellOutputs = this._outputs.filter(
+      el => !el.info.hidden && el.info.cellModel?.cell_type === 'code'
+    );
+    await Promise.all(
+      allCodeCellOutputs.map(
+        it => (it.cellOutput as SimplifiedOutputArea).future.done
+      )
+    );
+    for (const [idx, el] of this._outputs.entries()) {
+      if (el.info.hidden || el.info.cellModel?.cell_type !== 'code') {
+        continue;
+      }
+      const output = el.cellOutput as SimplifiedOutputArea;
+
+      const outputModels = output.model.toJSON();
+      snapshot.outputModels[idx] = outputModels;
+      if (!snapshot.widgetStates) {
+        for (let index = 0; index < outputModels.length; index++) {
+          const data =
+            (outputModels[index]?.data as Record<string, unknown>) ?? {};
+          const viewSpec = data[WIDGET_VIEW_MIMETYPE] as
+            | {
+                model_id?: string;
+                version_major?: number;
+                version_minor?: number;
+              }
+            | undefined;
+          if (!viewSpec?.model_id) {
+            continue;
+          }
+
+          const outputWidget = output.widgets[index];
+          if (!outputWidget) {
+            continue;
+          }
+          for (const child of outputWidget.children()) {
+            const renderer = child as Widget & {
+              mimeType?: string;
+              _manager?: { promise: Promise<IWidgetManagerLike> };
+            };
+            if (renderer.mimeType !== WIDGET_VIEW_MIMETYPE) {
+              continue;
+            }
+            if (renderer._manager) {
+              try {
+                const wm = await renderer._manager.promise;
+                snapshot.widgetStates = await wm.get_state();
+                break;
+              } catch (e) {
+                continue;
+              }
+            }
+          }
+          if (snapshot.widgetStates) {
+            break;
+          }
+        }
+      }
+    }
+    console.log('done', snapshot);
+    await this._model.saveSnapshotToMetadata(snapshot);
   }
 
   protected onCloseRequest(msg: Message): void {
