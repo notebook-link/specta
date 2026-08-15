@@ -2,14 +2,14 @@
 // Distributed under the terms of the Modified BSD License.
 const path = require('path');
 const fs = require('fs-extra');
-const webpack = require('webpack');
+const rspack = require('@rspack/core');
 const merge = require('webpack-merge').default;
-const { ModuleFederationPlugin } = webpack.container;
+
+const { ModuleFederationPluginV1: ModuleFederationPlugin } = rspack.container;
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const Handlebars = require('handlebars');
-const Build = require('@jupyterlab/builder').Build;
-const WPPlugin = require('@jupyterlab/builder').WPPlugin;
-const baseConfig = require('@jupyterlab/builder/lib/webpack.config.base');
+const Build = require('@jupyter/builder').Build;
+const baseConfig = require('@jupyter/builder/lib/webpack.config.base');
 
 const topLevelData = require('../package.json');
 
@@ -250,11 +250,14 @@ module.exports = [
       // to generate valid wheel names
       assetModuleFilename: '[name][ext][query]'
     },
-    cache: {
-      type: 'filesystem',
-      cacheDirectory: path.resolve(__dirname, '../build/webpack'),
-      buildDependencies: {
-        config: [__filename]
+    experiments: {
+      cache: {
+        type: 'persistent',
+        buildDependencies: [__filename],
+        storage: {
+          type: 'filesystem',
+          directory: path.resolve(__dirname, '../build/rspack')
+        }
       }
     },
     module: {

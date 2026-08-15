@@ -3,7 +3,7 @@ build-backend = "hatchling.build"
 requires = [
   "hatchling>=1.5.0,<2",
   "hatch-nodejs-version>=0.3.2",
-  "jupyterlab>=4.5.1,<5",
+  "jupyter-builder>=1.0.0",
 ]
 
 [project]
