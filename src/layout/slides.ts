@@ -90,8 +90,7 @@ export class SlidesLayout implements ISpectaLayout {
 
       if (!info.hidden) {
         const lastEl = elementList[elementList.length - 1] as
-          | ISlideElement
-          | undefined;
+          ISlideElement | undefined;
         switch (slideType) {
           case 'subslide': {
             if (lastEl?.type === 'subslide') {

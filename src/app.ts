@@ -109,8 +109,7 @@ export namespace SpectaApp {
    * The instantiation options for an App application.
    */
   export interface IOptions
-    extends JupyterFrontEnd.IOptions<SpectaShell>,
-      Partial<IInfo> {
+    extends JupyterFrontEnd.IOptions<SpectaShell>, Partial<IInfo> {
     paths?: Partial<JupyterFrontEnd.IPaths>;
   }
 

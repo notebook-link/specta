@@ -14,14 +14,7 @@ export namespace IShell {
    * The areas of the application shell where widgets can reside.
    */
   export type Area =
-    | 'main'
-    | 'header'
-    | 'top'
-    | 'menu'
-    | 'left'
-    | 'right'
-    | 'bottom'
-    | 'down';
+    'main' | 'header' | 'top' | 'menu' | 'left' | 'right' | 'bottom' | 'down';
 }
 
 /**
