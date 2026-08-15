@@ -175,11 +175,12 @@ export class AppWidget extends Panel {
 
   async saveSnapshot(): Promise<void> {
     const notebook = this._model.context?.model.toJSON() as any;
+
     if (notebook?.['metadata']?.['spectaSnapshot']) {
       delete notebook['metadata']['spectaSnapshot'];
     }
     const snapshot: ISpectaSnapshotData = {
-      notebook: this._model.context?.model.toJSON(),
+      notebook,
       outputModels: {},
       widgetStates: null
     };
