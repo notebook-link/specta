@@ -11,14 +11,19 @@ import {
   ISpectaLayoutRegistry
 } from './token';
 import {
+  computeHash,
   emitResizeEvent,
   hideAppLoadingIndicator,
-  ISpectaSnapshotData,
-  isSpectaApp,
-  IWidgetManagerLike,
-  WIDGET_VIEW_MIMETYPE
+  isSpectaApp
 } from './tool';
+import {
+  ISpectaSnapshotData,
+  IWidgetManagerLike,
+  SPECTA_SNAPSHOT_KEY,
+  WIDGET_VIEW_MIMETYPE
+} from './snapshot/tools';
 import { SimplifiedOutputArea } from '@jupyterlab/outputarea';
+import { INotebookContent } from '@jupyterlab/nbformat';
 
 export class AppWidget extends Panel {
   constructor(options: AppWidget.IOptions) {
@@ -111,7 +116,6 @@ export class AppWidget extends Panel {
     }
     for (const cell of cellList) {
       const src = cell.sharedModel.source;
-
       if (src.length === 0) {
         continue;
       }
@@ -173,33 +177,40 @@ export class AppWidget extends Panel {
     this.removeSpinner();
   }
 
-  async saveSnapshot(): Promise<void> {
-    const notebook = this._model.context?.model.toJSON() as any;
-
-    if (notebook?.['metadata']?.['spectaSnapshot']) {
-      delete notebook['metadata']['spectaSnapshot'];
+  async saveSnapshot(): Promise<number | undefined> {
+    if (this._model.staticRender) {
+      return;
     }
+
+    await Promise.all(
+      this._outputs.map(it => {
+        if ((it.cellOutput as any)?.future?.done) {
+          return (it.cellOutput as SimplifiedOutputArea).future.done;
+        }
+        return Promise.resolve();
+      })
+    );
+    const notebook = this._model.context?.model.toJSON() as INotebookContent;
+
+    if (notebook.metadata?.[SPECTA_SNAPSHOT_KEY]) {
+      delete notebook['metadata'][SPECTA_SNAPSHOT_KEY];
+    }
+    const allCodeSources = notebook.cells.map(it => it.source).join('\n');
+
+    const timestamp = Date.now();
     const snapshot: ISpectaSnapshotData = {
+      hash: computeHash(allCodeSources),
+      timestamp,
       notebook,
-      outputModels: {},
       widgetStates: null
     };
-    const allCodeCellOutputs = this._outputs.filter(
-      el => !el.info.hidden && el.info.cellModel?.cell_type === 'code'
-    );
-    await Promise.all(
-      allCodeCellOutputs.map(
-        it => (it.cellOutput as SimplifiedOutputArea).future.done
-      )
-    );
-    for (const [idx, el] of this._outputs.entries()) {
+    for (const el of this._outputs) {
       if (el.info.hidden || el.info.cellModel?.cell_type !== 'code') {
         continue;
       }
       const output = el.cellOutput as SimplifiedOutputArea;
 
       const outputModels = output.model.toJSON();
-      snapshot.outputModels[idx] = outputModels;
       if (!snapshot.widgetStates) {
         for (let index = 0; index < outputModels.length; index++) {
           const data =
@@ -245,6 +256,7 @@ export class AppWidget extends Panel {
     }
     console.log('done', snapshot);
     await this._model.saveSnapshotToMetadata(snapshot);
+    return timestamp;
   }
 
   protected onCloseRequest(msg: Message): void {

@@ -1,5 +1,11 @@
 import { IThemeManager } from '@jupyterlab/apputils';
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  useMemo
+} from 'react';
 import { Divider } from '../components/divider';
 import {
   ISpectaLayoutRegistry,
@@ -8,6 +14,7 @@ import {
   ISpectaWidget
 } from '../token';
 import { Widget } from '@lumino/widgets';
+import { AppWidget } from '../specta_widget';
 
 export const SettingContent = (props: {
   config?: ITopbarConfig;
@@ -17,6 +24,7 @@ export const SettingContent = (props: {
   uiSwitcher?: ISpectaUiSwitcher | null;
   currentPath?: string | null;
   currentUi?: string;
+  spectaWidget?: AppWidget;
 }) => {
   const { themeManager, layoutRegistry, settingsWidgets } = props;
   const [themeOptions, setThemeOptions] = useState<string[]>([
@@ -132,6 +140,36 @@ export const SettingContent = (props: {
     },
     [uiSwitcher, currentPath]
   );
+
+  const [snapshotStatus, setSnapshotStatus] = useState<
+    'out-of-sync' | 'in-sync' | 'not-exist'
+  >(props.spectaWidget?.model.snapshotStatus() ?? 'not-exist');
+
+  const deleteSnapshot = useCallback(async () => {
+    if (snapshotStatus === 'not-exist') {
+      return;
+    }
+    await props.spectaWidget?.model?.deleteSnapshot();
+    setCurrentTimestamp(undefined);
+    setSnapshotStatus('not-exist');
+  }, [props.spectaWidget, snapshotStatus]);
+
+  const createSnapshot = useCallback(async () => {
+    const timestamp = await props.spectaWidget?.saveSnapshot();
+    if (timestamp) {
+      setSnapshotStatus('in-sync');
+    }
+    setCurrentTimestamp(timestamp);
+  }, [props.spectaWidget]);
+
+  const snapshot = useMemo(
+    () => props.spectaWidget?.model?.getSnapshot(),
+    [props.spectaWidget]
+  );
+  const [currentTimestamp, setCurrentTimestamp] = useState<number | undefined>(
+    snapshot?.timestamp
+  );
+
   return (
     <div style={{ padding: '0 10px' }}>
       <p style={{ marginTop: 0, marginBottom: '5px', fontSize: '1rem' }}>
@@ -172,7 +210,9 @@ export const SettingContent = (props: {
         : true) &&
         themeManager && (
           <div>
-            <label htmlFor="">Select theme</label>
+            <label htmlFor="">
+              <b>Select theme</b>
+            </label>
             <div className="jp-select-wrapper">
               <select
                 className=" jp-mod-styled specta-topbar-theme"
@@ -198,7 +238,9 @@ export const SettingContent = (props: {
         )}
       {currentPath && uiSwitcher && uiSwitcher.uis.length > 0 && (
         <div>
-          <label htmlFor="">{uiSwitcher.label ?? 'Select UI'}</label>
+          <label htmlFor="">
+            <b>{uiSwitcher.label ?? 'Select UI'}</b>
+          </label>
           <div className="jp-select-wrapper">
             <select
               className=" jp-mod-styled specta-topbar-theme"
@@ -220,6 +262,49 @@ export const SettingContent = (props: {
           </div>
         </div>
       )}
+      <div>
+        <label htmlFor="">
+          <b>Static rendering</b>
+        </label>
+        <div
+          style={{
+            marginBottom: '12px',
+            display: 'flex',
+            gap: '2px',
+            flexDirection: 'column'
+          }}
+        >
+          <div style={{ flexGrow: 1, display: 'flex', alignItems: 'center' }}>
+            Last snapshot:{' '}
+            {currentTimestamp
+              ? new Date(currentTimestamp).toLocaleString()
+              : 'Unavailable'}
+          </div>
+          <div style={{ flexGrow: 1, display: 'flex', alignItems: 'center' }}>
+            {snapshotStatus === 'not-exist'
+              ? 'No snapshot found'
+              : snapshotStatus === 'out-of-sync'
+                ? 'Snapshot is out of sync with the notebook'
+                : ''}
+          </div>
+
+          <div style={{ display: 'flex', gap: '8px', flexDirection: 'row' }}>
+            <button
+              className="jp-mod-styled jp-mod-reject"
+              onClick={deleteSnapshot}
+              disabled={snapshotStatus === 'not-exist'}
+            >
+              Delete snapshot
+            </button>
+            <button
+              className="jp-mod-styled jp-mod-accept"
+              onClick={createSnapshot}
+            >
+              Create snapshot
+            </button>
+          </div>
+        </div>
+      </div>
       {settingsWidgets && settingsWidgets.length > 0 && (
         <div className="specta-settings-custom-section">
           <Divider />

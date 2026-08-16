@@ -2,10 +2,10 @@ import { ReactWidget } from '@jupyterlab/apputils';
 import { Panel, Widget } from '@lumino/widgets';
 import { Signal, ISignal } from '@lumino/signaling';
 
-import { ITopbarConfig, ISpectaWidget } from '../token';
+import { ITopbarConfig, ISpectaWidget, ISpectaTopbarWidget } from '../token';
 import { RankedPanel } from './rankedPanel';
 
-export class TopbarWidget extends Panel {
+export class TopbarWidget extends Panel implements ISpectaTopbarWidget {
   constructor(options: TopbarWidget.IOptions) {
     super(options);
     this._config = {

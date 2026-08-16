@@ -54,6 +54,10 @@ export class NotebookGridWidgetFactory extends ABCWidgetFactory<
         nbMetadata: context.model.metadata,
         nbPath: path
       });
+
+      const spectaWidget = await this._spectaWidgetFactory.createNew({
+        context
+      });
       const isSpecta = isSpectaApp();
       let topbarTarget: ISpectaTopbarWidget | undefined;
       if (!spectaConfig.hideTopbar) {
@@ -69,7 +73,6 @@ export class NotebookGridWidgetFactory extends ABCWidgetFactory<
         } else {
           topbarWidget = this._spectaTopbar;
         }
-        const topbar = topbarWidget as TopbarWidget | undefined;
 
         const menu = (
           <MenuComponent
@@ -79,8 +82,9 @@ export class NotebookGridWidgetFactory extends ABCWidgetFactory<
             uiSwitcher={this._uiSwitcher}
             currentPath={path}
             currentUi={isSpecta ? 'specta' : 'lab'}
-            settingsIconChanged={topbar?.settingsIconChanged}
+            settingsIconChanged={topbarWidget?.settingsIconChanged}
             customIcon={topbarWidget?.customIcon}
+            spectaWidget={spectaWidget}
           />
         );
 
@@ -102,6 +106,7 @@ export class NotebookGridWidgetFactory extends ABCWidgetFactory<
             if (titleWidget) {
               titleWidget.addClass('specta-topbar-title-wrapper');
             }
+            console.log('im here adding menu to topbar');
             this._spectaTopbar.addReactWidget(menu, 'right', 10000);
           }
         }
@@ -109,10 +114,7 @@ export class NotebookGridWidgetFactory extends ABCWidgetFactory<
         this._shell.hideTopBar();
       }
 
-      const spectaWidget = await this._spectaWidgetFactory.createNew({
-        context
-      });
-
+      console.log('im here', topbarTarget);
       if (spectaWidget) {
         content.addWidget(spectaWidget);
         if (topbarTarget?.addReactWidget) {
