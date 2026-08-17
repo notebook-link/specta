@@ -35,9 +35,10 @@ import {
   ISpectaSnapshotData,
   SPECTA_SNAPSHOT_KEY,
   WIDGET_STATE_MIMETYPE,
-  parseSnapshot
-} from './snapshot/format';
-import { snapshotHash } from './snapshot/hash';
+  parseSnapshot,
+  snapshotHash
+} from './snapshot';
+
 import { ISignal, Signal } from '@lumino/signaling';
 import { INotebookContent } from '@jupyterlab/nbformat';
 
@@ -118,10 +119,10 @@ export class AppModel {
     }
     if (snapshot && this.snapshotStatus() === 'out-of-sync') {
       const response = await showDialog({
-        body: 'Do you want to use existing snapshot or re-run the notebook using a kernel?',
-        title: 'Snapshot out of sync',
+        body: 'Do you want to use existing cache or re-run the notebook using a kernel?',
+        title: 'Render cache out of sync',
         buttons: [
-          Dialog.cancelButton({ label: 'Continue' }),
+          Dialog.cancelButton({ label: 'Use cache' }),
           Dialog.okButton({ label: 'Render with kernel' })
         ]
       });

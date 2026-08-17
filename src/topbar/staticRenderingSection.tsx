@@ -89,7 +89,7 @@ export const StaticRenderingSection = (props: {
       >
         {snapshotStatus !== 'not-exist' && (
           <div style={{ flexGrow: 1, display: 'flex', alignItems: 'center' }}>
-            Last snapshot:{' '}
+            Last cache:{' '}
             {currentTimestamp
               ? new Date(currentTimestamp).toLocaleString()
               : 'Unavailable'}
@@ -97,9 +97,9 @@ export const StaticRenderingSection = (props: {
         )}
         <div style={{ flexGrow: 1, display: 'flex', alignItems: 'center' }}>
           {snapshotStatus === 'not-exist'
-            ? 'No snapshot found'
+            ? 'No render cache found'
             : snapshotStatus === 'out-of-sync'
-              ? 'Snapshot is out of sync with the notebook'
+              ? 'Render cache is out of sync with the notebook'
               : ''}
         </div>
 
@@ -122,7 +122,7 @@ export const StaticRenderingSection = (props: {
               opacity: snapshotStatus === 'not-exist' ? 0.5 : 1
             }}
           >
-            Delete snapshot
+            Clear cache
           </button>
           <button
             className="jp-mod-styled jp-mod-accept"
@@ -138,11 +138,11 @@ export const StaticRenderingSection = (props: {
             disabled={isStaticRendering || creatingSnapshot}
             title={
               isStaticRendering
-                ? 'Cannot create snapshot in static rendering mode'
+                ? 'Cannot save render cache in static rendering mode'
                 : ''
             }
           >
-            {creatingSnapshot ? 'Creating...' : 'Create snapshot'}
+            {creatingSnapshot ? 'Saving...' : 'Save cache'}
           </button>
         </div>
         <div

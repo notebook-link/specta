@@ -16,7 +16,7 @@ import {
   isSpectaApp,
   nextFrame
 } from './tool';
-import { captureSnapshot } from './snapshot/capture';
+import { captureSnapshot } from './snapshot';
 
 export class AppWidget extends Panel {
   constructor(options: AppWidget.IOptions) {
