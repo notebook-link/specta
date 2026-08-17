@@ -52,6 +52,7 @@ export class AppModel {
       }
       this._context.model.fromJSON(this._documentJson());
       this._fileChanged.emit(this._context.model.cells);
+      this._snapshotChanged.emit();
     });
     this._kernelSpecManager = options.kernelSpecManager;
     const specs = this._kernelSpecManager.specs;
@@ -76,6 +77,9 @@ export class AppModel {
   get staticRender() {
     return this._staticRender;
   }
+  get snapshotChanged(): ISignal<this, void> {
+    return this._snapshotChanged;
+  }
 
   dispose(): void {
     if (this.isDisposed) {
@@ -84,6 +88,7 @@ export class AppModel {
     this._isDisposed = true;
     this._context?.dispose();
     this._notebookPanel?.dispose();
+    Signal.clearData(this);
   }
 
   get rendermime(): IRenderMimeRegistry {
@@ -109,7 +114,7 @@ export class AppModel {
           title: 'Snapshot out of sync',
           buttons: [
             Dialog.cancelButton({ label: 'Continue' }),
-            Dialog.okButton({ label: 'Activate kernel' })
+            Dialog.okButton({ label: 'Render with kernel' })
           ]
         });
         if (response.button.accept) {
@@ -171,6 +176,7 @@ export class AppModel {
       (this.options.tracker as any).add(this._notebookPanel);
       await this._context.sessionContext.initialize();
     }
+    this._snapshotChanged.emit();
   }
 
   createCell(cellModel: ICellModel): SpectaCellOutput {
@@ -273,6 +279,7 @@ export class AppModel {
     this._notebookPanel?.dispose();
 
     await this.initialize();
+    this._snapshotChanged.emit();
   }
 
   async executeCell(
@@ -329,12 +336,14 @@ export class AppModel {
     this.options.context.model.setMetadata(SPECTA_SNAPSHOT_KEY, snapshot);
     await this.options.context.save();
     this.options.context.model.dirty = false;
+    this._snapshotChanged.emit();
   }
 
   async deleteSnapshot(): Promise<void> {
     this.options.context.model.deleteMetadata(SPECTA_SNAPSHOT_KEY);
     await this.options.context.save();
     this.options.context.model.dirty = false;
+    this._snapshotChanged.emit();
   }
 
   private _documentJson(): INotebookContentWithSnapshot {
@@ -355,6 +364,8 @@ export class AppModel {
   private _filePath: string;
   private _kernelSpecManager: KernelSpec.IManager;
   private _staticRender = false;
+
+  private _snapshotChanged = new Signal<this, void>(this);
 }
 
 export namespace AppModel {

@@ -1,11 +1,5 @@
 import { IThemeManager } from '@jupyterlab/apputils';
-import React, {
-  useState,
-  useEffect,
-  useCallback,
-  useRef,
-  useMemo
-} from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Divider } from '../components/divider';
 import {
   ISpectaLayoutRegistry,
@@ -14,8 +8,22 @@ import {
   ISpectaWidget
 } from '../token';
 import { Widget } from '@lumino/widgets';
-import { AppWidget } from '../specta_widget';
+import type { AppWidget } from '../specta_widget';
+import type { AppModel } from '../specta_model';
 
+type ISnapshotState = {
+  status: 'out-of-sync' | 'in-sync' | 'not-exist';
+  timestamp?: number;
+  staticRender: boolean;
+};
+
+function readSnapshotState(model?: AppModel): ISnapshotState {
+  return {
+    status: model?.snapshotStatus() ?? 'not-exist',
+    timestamp: model?.getSnapshot()?.timestamp,
+    staticRender: Boolean(model?.staticRender)
+  };
+}
 export const SettingContent = (props: {
   config?: ITopbarConfig;
   themeManager?: IThemeManager;
@@ -132,9 +140,6 @@ export const SettingContent = (props: {
     [settingsWidgets]
   );
 
-  const [isStaticRendering, setIsStaticRendering] = useState<boolean>(
-    Boolean(props.spectaWidget?.model?.staticRender)
-  );
   const { uiSwitcher, currentPath } = props;
   const onUiChange = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -146,46 +151,59 @@ export const SettingContent = (props: {
     [uiSwitcher, currentPath]
   );
 
-  const [snapshotStatus, setSnapshotStatus] = useState<
-    'out-of-sync' | 'in-sync' | 'not-exist'
-  >(props.spectaWidget?.model.snapshotStatus() ?? 'not-exist');
+  const model = props.spectaWidget?.model;
+  const [snapshotState, setSnapshotState] = useState<ISnapshotState>(() =>
+    readSnapshotState(model)
+  );
+  const [creatingSnapshot, setCreatingSnapshot] = useState(false);
+
+  // Names kept so the JSX below is untouched.
+  const {
+    status: snapshotStatus,
+    timestamp: currentTimestamp,
+    staticRender: isStaticRendering
+  } = snapshotState;
+
+  useEffect(() => {
+    if (!model) {
+      return;
+    }
+    const handler = () => setSnapshotState(readSnapshotState(model));
+    model.snapshotChanged.connect(handler);
+    return () => {
+      model.snapshotChanged.disconnect(handler);
+    };
+  }, [model]);
+
+  const creatingRef = useRef(false);
 
   const deleteSnapshot = useCallback(async () => {
     if (snapshotStatus === 'not-exist') {
       return;
     }
-    await props.spectaWidget?.model?.deleteSnapshot();
-    setCurrentTimestamp(undefined);
-    setSnapshotStatus('not-exist');
-  }, [props.spectaWidget, snapshotStatus]);
+    await model?.deleteSnapshot();
+  }, [model, snapshotStatus]);
 
   const createSnapshot = useCallback(async () => {
-    if (isStaticRendering) {
+    if (isStaticRendering || creatingRef.current) {
       return;
     }
+    creatingRef.current = true;
     setCreatingSnapshot(true);
-    const timestamp = await props.spectaWidget?.saveSnapshot();
-    if (timestamp) {
-      setSnapshotStatus('in-sync');
+    try {
+      await props.spectaWidget?.saveSnapshot();
+    } finally {
+      creatingRef.current = false;
+      setCreatingSnapshot(false);
     }
-    setCurrentTimestamp(timestamp);
-    setCreatingSnapshot(false);
   }, [props.spectaWidget, isStaticRendering]);
 
-  const snapshot = useMemo(
-    () => props.spectaWidget?.model?.getSnapshot(),
-    [props.spectaWidget]
-  );
-  const [currentTimestamp, setCurrentTimestamp] = useState<number | undefined>(
-    snapshot?.timestamp
-  );
-
   const activateKernel = useCallback(async () => {
+    if (!isStaticRendering) {
+      return;
+    }
     await props.spectaWidget?.turnOffStaticRender();
-    setIsStaticRendering(false);
-  }, [props.spectaWidget]);
-
-  const [creatingSnapshot, setCreatingSnapshot] = useState(false);
+  }, [props.spectaWidget, isStaticRendering]);
 
   return (
     <div style={{ padding: '0 10px' }}>
@@ -335,11 +353,14 @@ export const SettingContent = (props: {
                 className="jp-mod-styled jp-mod-accept"
                 onClick={createSnapshot}
                 style={{
-                  cursor: isStaticRendering ? 'not-allowed' : 'pointer',
+                  cursor:
+                    isStaticRendering || creatingSnapshot
+                      ? 'not-allowed'
+                      : 'pointer',
                   flexGrow: 1,
-                  opacity: isStaticRendering ? 0.5 : 1
+                  opacity: isStaticRendering || creatingSnapshot ? 0.5 : 1
                 }}
-                disabled={isStaticRendering}
+                disabled={isStaticRendering || creatingSnapshot}
                 title={
                   isStaticRendering
                     ? 'Cannot create snapshot in static rendering mode'
@@ -358,6 +379,7 @@ export const SettingContent = (props: {
               <button
                 className="jp-mod-styled jp-mod-accept"
                 onClick={activateKernel}
+                disabled={!isStaticRendering}
                 style={{
                   cursor: !isStaticRendering ? 'not-allowed' : 'pointer',
                   flexGrow: 1,
@@ -365,7 +387,7 @@ export const SettingContent = (props: {
                 }}
                 title="Render notebook using a live kernel"
               >
-                Activate kernel
+                Render with kernel
               </button>
             </div>
           </div>
