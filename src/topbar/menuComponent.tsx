@@ -6,7 +6,7 @@ import { GearIcon } from '../components/icon/gear';
 import { IconButton } from '../components/iconButton';
 import { SettingContent } from './settingDialog';
 import { ISpectaUiSwitcher, ITopbarConfig, ISpectaWidget } from '../token';
-import { AppWidget } from '../specta_widget';
+import type { AppWidget } from '../specta_widget';
 
 interface IProps {
   config?: ITopbarConfig;

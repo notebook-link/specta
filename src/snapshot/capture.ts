@@ -1,11 +1,11 @@
 import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { INotebookContent } from '@jupyterlab/nbformat';
-import * as nbformat from '@jupyterlab/nbformat';
+import { IOutput } from '@jupyterlab/nbformat';
 import { INotebookModel } from '@jupyterlab/notebook';
 import { SimplifiedOutputArea } from '@jupyterlab/outputarea';
 import { Widget } from '@lumino/widgets';
 
-import { SpectaCellOutput } from '../specta_cell_output';
+import type { SpectaCellOutput } from '../specta_cell_output';
 import {
   ISpectaSnapshotData,
   IWidgetManagerState,
@@ -31,7 +31,7 @@ interface IWidgetManagerLike {
  */
 export async function collectWidgetState(
   area: SimplifiedOutputArea,
-  outputs: nbformat.IOutput[]
+  outputs: IOutput[]
 ): Promise<IWidgetManagerState | null> {
   for (let index = 0; index < outputs.length; index++) {
     const data = (outputs[index]?.data as Record<string, unknown>) ?? {};

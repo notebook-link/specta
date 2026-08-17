@@ -4,7 +4,7 @@ import { Message } from '@lumino/messaging';
 import { Panel, Widget } from '@lumino/widgets';
 
 import { SpectaCellOutput } from './specta_cell_output';
-import { AppModel } from './specta_model';
+import type { AppModel } from './specta_model';
 import {
   ISpectaAppConfig,
   ISpectaLayout,

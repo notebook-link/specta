@@ -1,6 +1,6 @@
 import { Panel, Widget } from '@lumino/widgets';
-import { SpectaCellOutput } from '../specta_cell_output';
-import * as nbformat from '@jupyterlab/nbformat';
+import type { SpectaCellOutput } from '../specta_cell_output';
+import { INotebookContent } from '@jupyterlab/nbformat';
 import { ISpectaAppConfig, ISpectaLayout } from '../token';
 import Reveal from 'reveal.js';
 import { emitResizeEvent, setRevealTheme } from '../tool';
@@ -72,7 +72,7 @@ export class SlidesLayout implements ISpectaLayout {
   async render(options: {
     host: Panel;
     items: SpectaCellOutput[];
-    notebook: nbformat.INotebookContent;
+    notebook: INotebookContent;
     readyCallback: () => Promise<void>;
     spectaConfig: ISpectaAppConfig;
   }): Promise<void> {
