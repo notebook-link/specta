@@ -95,7 +95,8 @@ export function registerDocumentFactory(options: {
     themeManager,
     spectaLayoutRegistry,
     spectaTopbar,
-    uiSwitcher
+    uiSwitcher,
+    supportStaticRendering: true
   });
 
   // Registering the widget factory

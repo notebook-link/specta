@@ -25,6 +25,8 @@ export const SettingContent = (props: {
   currentPath?: string | null;
   currentUi?: string;
   spectaWidget?: AppWidget;
+  isSpectaApp?: boolean;
+  enableStaticRenderingConfig?: boolean;
 }) => {
   const { themeManager, layoutRegistry, settingsWidgets } = props;
   const [themeOptions, setThemeOptions] = useState<string[]>([
@@ -130,6 +132,9 @@ export const SettingContent = (props: {
     [settingsWidgets]
   );
 
+  const [isStaticRendering, setIsStaticRendering] = useState<boolean>(
+    Boolean(props.spectaWidget?.model?.staticRender)
+  );
   const { uiSwitcher, currentPath } = props;
   const onUiChange = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -155,12 +160,17 @@ export const SettingContent = (props: {
   }, [props.spectaWidget, snapshotStatus]);
 
   const createSnapshot = useCallback(async () => {
+    if (isStaticRendering) {
+      return;
+    }
+    setCreatingSnapshot(true);
     const timestamp = await props.spectaWidget?.saveSnapshot();
     if (timestamp) {
       setSnapshotStatus('in-sync');
     }
     setCurrentTimestamp(timestamp);
-  }, [props.spectaWidget]);
+    setCreatingSnapshot(false);
+  }, [props.spectaWidget, isStaticRendering]);
 
   const snapshot = useMemo(
     () => props.spectaWidget?.model?.getSnapshot(),
@@ -169,6 +179,13 @@ export const SettingContent = (props: {
   const [currentTimestamp, setCurrentTimestamp] = useState<number | undefined>(
     snapshot?.timestamp
   );
+
+  const activateKernel = useCallback(async () => {
+    await props.spectaWidget?.turnOffStaticRender();
+    setIsStaticRendering(false);
+  }, [props.spectaWidget]);
+
+  const [creatingSnapshot, setCreatingSnapshot] = useState(false);
 
   return (
     <div style={{ padding: '0 10px' }}>
@@ -262,51 +279,98 @@ export const SettingContent = (props: {
           </div>
         </div>
       )}
-      <div>
-        <label htmlFor="">
-          <b>Static rendering</b>
-        </label>
-        <div
-          style={{
-            marginBottom: '12px',
-            display: 'flex',
-            gap: '2px',
-            flexDirection: 'column'
-          }}
-        >
-          {snapshotStatus !== 'not-exist' && (
+      {props.enableStaticRenderingConfig && (
+        <div>
+          <label htmlFor="">
+            <b>Static rendering: {isStaticRendering ? 'On' : 'Off'}</b>
+          </label>
+          <div
+            style={{
+              marginBottom: '12px',
+              display: 'flex',
+              gap: '2px',
+              flexDirection: 'column'
+            }}
+          >
+            {snapshotStatus !== 'not-exist' && (
+              <div
+                style={{ flexGrow: 1, display: 'flex', alignItems: 'center' }}
+              >
+                Last snapshot:{' '}
+                {currentTimestamp
+                  ? new Date(currentTimestamp).toLocaleString()
+                  : 'Unavailable'}
+              </div>
+            )}
             <div style={{ flexGrow: 1, display: 'flex', alignItems: 'center' }}>
-              Last snapshot:{' '}
-              {currentTimestamp
-                ? new Date(currentTimestamp).toLocaleString()
-                : 'Unavailable'}
+              {snapshotStatus === 'not-exist'
+                ? 'No snapshot found'
+                : snapshotStatus === 'out-of-sync'
+                  ? 'Snapshot is out of sync with the notebook'
+                  : ''}
             </div>
-          )}
-          <div style={{ flexGrow: 1, display: 'flex', alignItems: 'center' }}>
-            {snapshotStatus === 'not-exist'
-              ? 'No snapshot found'
-              : snapshotStatus === 'out-of-sync'
-                ? 'Snapshot is out of sync with the notebook'
-                : ''}
-          </div>
 
-          <div style={{ display: 'flex', gap: '8px', flexDirection: 'row' }}>
-            <button
-              className="jp-mod-styled jp-mod-reject"
-              onClick={deleteSnapshot}
-              disabled={snapshotStatus === 'not-exist'}
+            <div
+              style={{
+                gap: '8px',
+                flexDirection: 'row',
+                marginBottom: '4px',
+                display: props.isSpectaApp ? 'none' : 'flex'
+              }}
             >
-              Delete snapshot
-            </button>
-            <button
-              className="jp-mod-styled jp-mod-accept"
-              onClick={createSnapshot}
+              <button
+                className="jp-mod-styled jp-mod-warn"
+                onClick={deleteSnapshot}
+                disabled={snapshotStatus === 'not-exist'}
+                style={{
+                  cursor:
+                    snapshotStatus === 'not-exist' ? 'not-allowed' : 'pointer',
+                  flexGrow: 1,
+                  opacity: snapshotStatus === 'not-exist' ? 0.5 : 1
+                }}
+              >
+                Delete snapshot
+              </button>
+              <button
+                className="jp-mod-styled jp-mod-accept"
+                onClick={createSnapshot}
+                style={{
+                  cursor: isStaticRendering ? 'not-allowed' : 'pointer',
+                  flexGrow: 1,
+                  opacity: isStaticRendering ? 0.5 : 1
+                }}
+                disabled={isStaticRendering}
+                title={
+                  isStaticRendering
+                    ? 'Cannot create snapshot in static rendering mode'
+                    : ''
+                }
+              >
+                {creatingSnapshot ? 'Creating...' : 'Create snapshot'}
+              </button>
+            </div>
+            <div
+              style={{
+                display: props.spectaWidget ? 'flex' : 'none',
+                justifyContent: 'center'
+              }}
             >
-              Create snapshot
-            </button>
+              <button
+                className="jp-mod-styled jp-mod-accept"
+                onClick={activateKernel}
+                style={{
+                  cursor: !isStaticRendering ? 'not-allowed' : 'pointer',
+                  flexGrow: 1,
+                  opacity: !isStaticRendering ? 0.5 : 1
+                }}
+                title="Render notebook using a live kernel"
+              >
+                Activate kernel
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
       {settingsWidgets && settingsWidgets.length > 0 && (
         <div className="specta-settings-custom-section">
           <Divider />

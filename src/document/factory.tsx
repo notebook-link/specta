@@ -4,8 +4,6 @@ import { INotebookModel } from '@jupyterlab/notebook';
 import { Panel } from '@lumino/widgets';
 import * as React from 'react';
 
-import { ExportIcon } from '../components/icon/export';
-import { IconButton } from '../components/iconButton';
 import { SpectaWidgetFactory } from '../specta_widget_factory';
 import {
   ISpectaLayoutRegistry,
@@ -27,6 +25,7 @@ interface IOptions extends DocumentRegistry.IWidgetFactoryOptions {
   spectaLayoutRegistry: ISpectaLayoutRegistry;
   spectaTopbar: ISpectaTopbarWidget;
   uiSwitcher?: ISpectaUiSwitcher | null;
+  supportStaticRendering?: boolean;
 }
 
 export class NotebookGridWidgetFactory extends ABCWidgetFactory<
@@ -40,6 +39,7 @@ export class NotebookGridWidgetFactory extends ABCWidgetFactory<
     this._themeManager = options.themeManager;
     this._spectaTopbar = options.spectaTopbar;
     this._uiSwitcher = options.uiSwitcher;
+    this._supportStaticRendering = options.supportStaticRendering;
   }
 
   protected createNewWidget(
@@ -59,7 +59,6 @@ export class NotebookGridWidgetFactory extends ABCWidgetFactory<
         context
       });
       const isSpecta = isSpectaApp();
-      let topbarTarget: ISpectaTopbarWidget | undefined;
       if (!spectaConfig.hideTopbar) {
         const title = <TitleComponent config={spectaConfig.topBar} />;
         let topbarWidget: ISpectaTopbarWidget | undefined = undefined;
@@ -85,6 +84,8 @@ export class NotebookGridWidgetFactory extends ABCWidgetFactory<
             settingsIconChanged={topbarWidget?.settingsIconChanged}
             customIcon={topbarWidget?.customIcon}
             spectaWidget={spectaWidget}
+            isSpectaApp={isSpecta}
+            enableStaticRenderingConfig={Boolean(this._supportStaticRendering)}
           />
         );
 
@@ -95,7 +96,6 @@ export class NotebookGridWidgetFactory extends ABCWidgetFactory<
           }
           localTopbar.addReactWidget(menu, 'right', 10000);
           content.addWidget(localTopbar);
-          topbarTarget = localTopbar;
         } else {
           if (this._spectaTopbar.addReactWidget) {
             const titleWidget = this._spectaTopbar.addReactWidget(
@@ -115,21 +115,6 @@ export class NotebookGridWidgetFactory extends ABCWidgetFactory<
 
       if (spectaWidget) {
         content.addWidget(spectaWidget);
-        if (topbarTarget?.addReactWidget) {
-          const button = (
-            <IconButton
-              onClick={async () => await spectaWidget.saveSnapshot()}
-              icon={
-                <ExportIcon
-                  fill="var(--jp-ui-font-color2)"
-                  height={23}
-                  width={23}
-                />
-              }
-            />
-          );
-          topbarTarget.addReactWidget(button, 'right', 9999);
-        }
       }
     });
 
@@ -146,4 +131,5 @@ export class NotebookGridWidgetFactory extends ABCWidgetFactory<
   private _themeManager?: IThemeManager;
   private _spectaTopbar: ISpectaTopbarWidget;
   private _uiSwitcher?: ISpectaUiSwitcher | null;
+  private _supportStaticRendering?: boolean;
 }

@@ -62,7 +62,9 @@ export class AppWidget extends Panel {
       this
     );
     this._model.fileChanged.connect((_, newCells) => {
-      this.rerender(newCells);
+      if (!this._model.staticRender) {
+        this.rerender(newCells);
+      }
     });
   }
 
@@ -150,7 +152,10 @@ export class AppWidget extends Panel {
     });
   }
 
-  async rerender(newCells: CellList): Promise<void> {
+  async rerender(newCells?: CellList): Promise<void> {
+    if (!newCells) {
+      newCells = this.model.cells;
+    }
     this.addSpinner();
     for (const element of this._outputs) {
       element.dispose();
@@ -175,6 +180,14 @@ export class AppWidget extends Panel {
 
     emitResizeEvent();
     this.removeSpinner();
+  }
+
+  async turnOffStaticRender() {
+    if (!this._model.staticRender) {
+      return;
+    }
+    await this._model.turnOffStaticRender();
+    await this.rerender();
   }
 
   async saveSnapshot(): Promise<number | undefined> {

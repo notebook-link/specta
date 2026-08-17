@@ -1,4 +1,4 @@
-import { Dialog, ISessionContext, showDialog } from '@jupyterlab/apputils';
+import { Dialog, showDialog } from '@jupyterlab/apputils';
 import {
   CodeCell,
   CodeCellModel,
@@ -47,14 +47,7 @@ export class AppModel {
       this._notebookModelJson.metadata[SPECTA_SNAPSHOT_KEY]
     );
     this._filePath = options.context.localPath;
-    this._kernelPreference = {
-      shouldStart: !this._staticRender,
-      canStart: !this._staticRender,
-      shutdownOnDispose: true,
-      name: options.context.model.defaultKernelName,
-      autoStartDefault: !this._staticRender,
-      language: options.context.model.defaultKernelLanguage
-    };
+
     this._manager = options.manager;
     options.context.fileChanged.connect(e => {
       this._fileChanged.emit(e.model.cells);
@@ -81,10 +74,6 @@ export class AppModel {
 
   get staticRender() {
     return this._staticRender;
-  }
-
-  set staticRender(v: boolean) {
-    this._staticRender = v;
   }
 
   get snapshotData(): ISpectaSnapshotData | undefined {
@@ -115,11 +104,6 @@ export class AppModel {
     return this._notebookPanel;
   }
   async initialize(): Promise<void> {
-    this._context = await createNotebookContext({
-      manager: this._manager,
-      kernelPreference: this._kernelPreference,
-      filePath: this._filePath
-    });
     if (this._staticRender) {
       const snapshotStatus = this.snapshotStatus();
       if (snapshotStatus === 'out-of-sync') {
@@ -133,9 +117,24 @@ export class AppModel {
         });
         if (response.button.accept) {
           this._staticRender = false;
+        } else {
+          this._staticRender = true;
         }
       }
     }
+    const kernelPreference = {
+      shouldStart: !this._staticRender,
+      canStart: !this._staticRender,
+      shutdownOnDispose: true,
+      name: this.options.context.model.defaultKernelName,
+      autoStartDefault: !this._staticRender,
+      language: this.options.context.model.defaultKernelLanguage
+    };
+    this._context = await createNotebookContext({
+      manager: this._manager,
+      kernelPreference: kernelPreference,
+      filePath: this._filePath
+    });
     if (this._staticRender) {
       const snapshot = this.getSnapshot();
       if (!snapshot) {
@@ -274,6 +273,16 @@ export class AppModel {
     return item;
   }
 
+  async turnOffStaticRender() {
+    if (!this._staticRender) {
+      return;
+    }
+    this._staticRender = false;
+    this._notebookPanel?.dispose();
+
+    await this.initialize();
+  }
+
   async executeCell(
     cell: ICellModel,
     outputWrapper: SpectaCellOutput
@@ -347,7 +356,6 @@ export class AppModel {
   private _notebookModelJson: INotebookContentWithSnapshot;
   private _isDisposed = false;
   private _manager: ServiceManager.IManager;
-  private _kernelPreference: ISessionContext.IKernelPreference;
   private _fileChanged = new Signal<this, CellList>(this);
   private _filePath: string;
   private _kernelSpecManager: KernelSpec.IManager;

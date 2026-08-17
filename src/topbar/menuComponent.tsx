@@ -18,6 +18,8 @@ interface IProps {
   currentUi?: string;
   settingsIconChanged?: ISignal<any, JSX.Element>;
   customIcon?: JSX.Element;
+  isSpectaApp?: boolean;
+  enableStaticRenderingConfig?: boolean;
 }
 
 export function MenuComponent(props: IProps): JSX.Element {
@@ -84,6 +86,8 @@ export function MenuComponent(props: IProps): JSX.Element {
             currentPath={props.currentPath}
             currentUi={props.currentUi}
             spectaWidget={props.spectaWidget}
+            isSpectaApp={props.isSpectaApp}
+            enableStaticRenderingConfig={props.enableStaticRenderingConfig}
           />
         </div>
       )}

@@ -76,6 +76,7 @@ export const topbarPlugin: JupyterFrontEndPlugin<
         currentUi={isSpecta ? 'specta' : 'lab'}
         settingsIconChanged={widget.settingsIconChanged}
         customIcon={widget.customIcon}
+        enableStaticRenderingConfig={false}
       />
     );
     widget.addReactWidget(menu, 'right', 10000);
