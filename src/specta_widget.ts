@@ -11,14 +11,15 @@ import {
   ISpectaLayoutRegistry
 } from './token';
 import {
-  computeHash,
   emitResizeEvent,
   hideAppLoadingIndicator,
-  isSpectaApp
+  isSpectaApp,
+  nextFrame
 } from './tool';
 import {
   ISpectaSnapshotData,
   IWidgetManagerLike,
+  snapshotHash,
   SPECTA_SNAPSHOT_KEY,
   WIDGET_VIEW_MIMETYPE
 } from './snapshot/tools';
@@ -116,14 +117,19 @@ export class AppWidget extends Panel {
     if (!cellList) {
       return outs;
     }
+    let index = 0;
     for (const cell of cellList) {
       const src = cell.sharedModel.source;
       if (src.length === 0) {
+        index++;
         continue;
       }
       const el = this._model.createCell(cell);
-      this._model.executeCell(cell, el);
-
+      el.info.cellIndex = index++;
+      el.executionDone = this._model
+        .executeCell(cell, el)
+        .then(() => undefined)
+        .catch(() => undefined);
       outs.push(el);
     }
     return outs;
@@ -195,36 +201,42 @@ export class AppWidget extends Panel {
       return;
     }
 
-    await Promise.all(
-      this._outputs.map(it => {
-        if ((it.cellOutput as any)?.future?.done) {
-          return (it.cellOutput as SimplifiedOutputArea).future.done;
-        }
-        return Promise.resolve();
-      })
-    );
+    const outputs = this._outputs;
+    await Promise.all(outputs.map(el => el.executionDone));
+    if (outputs !== this._outputs) {
+      // A rerender landed while we were waiting; these widgets are disposed.
+      return;
+    }
+    await nextFrame();
     const notebook = this._model.context?.model.toJSON() as INotebookContent;
 
     if (notebook.metadata?.[SPECTA_SNAPSHOT_KEY]) {
       delete notebook['metadata'][SPECTA_SNAPSHOT_KEY];
     }
-    const allCodeSources = notebook.cells.map(it => it.source).join('\n');
 
     const timestamp = Date.now();
     const snapshot: ISpectaSnapshotData = {
-      hash: computeHash(allCodeSources),
+      hash: snapshotHash(notebook.cells.map(it => it.source)),
       timestamp,
       notebook,
       widgetStates: null
     };
-    for (const [idx, el] of this._outputs.entries()) {
-      if (el.info.hidden || el.info.cellModel?.cell_type !== 'code') {
+    for (const el of outputs) {
+      if (
+        el.info.hidden ||
+        el.info.cellModel?.cell_type !== 'code' ||
+        el.info.cellIndex === undefined
+      ) {
         continue;
       }
       const output = el.cellOutput as SimplifiedOutputArea;
 
       const outputModels = output.model.toJSON();
-      notebook.cells[idx].outputs = outputModels;
+      const target = notebook.cells[el.info.cellIndex];
+      if (!target) {
+        continue;
+      }
+      target.outputs = outputModels;
       if (!snapshot.widgetStates) {
         for (let index = 0; index < outputModels.length; index++) {
           const data =

@@ -23,7 +23,6 @@ import {
 import { OutputAreaModel, SimplifiedOutputArea } from '@jupyterlab/outputarea';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { KernelSpec, ServiceManager } from '@jupyterlab/services';
-import { IExecuteReplyMsg } from '@jupyterlab/services/lib/kernel/messages';
 import { PromiseDelegate, UUID } from '@lumino/coreutils';
 
 import {
@@ -31,26 +30,28 @@ import {
   createNotebookPanel
 } from './create_notebook_panel';
 import { SpectaCellOutput } from './specta_cell_output';
-import { computeHash, emitResizeEvent, readCellConfig } from './tool';
+import { emitResizeEvent, readCellConfig } from './tool';
 import {
   ISpectaSnapshotData,
   SPECTA_SNAPSHOT_KEY,
   WIDGET_STATE_MIMETYPE,
-  INotebookContentWithSnapshot
+  INotebookContentWithSnapshot,
+  snapshotHash
 } from './snapshot/tools';
 import { ISignal, Signal } from '@lumino/signaling';
 
 export class AppModel {
   constructor(private options: AppModel.IOptions) {
-    this._notebookModelJson = options.context.model.toJSON() as any;
-    this._staticRender = Boolean(
-      this._notebookModelJson.metadata[SPECTA_SNAPSHOT_KEY]
-    );
+    this._staticRender = Boolean(this.getSnapshot());
     this._filePath = options.context.localPath;
-
     this._manager = options.manager;
-    options.context.fileChanged.connect(e => {
-      this._fileChanged.emit(e.model.cells);
+
+    options.context.fileChanged.connect(context => {
+      if (!this._context || this._staticRender) {
+        return;
+      }
+      this._context.model.fromJSON(this._documentJson());
+      this._fileChanged.emit(this._context.model.cells);
     });
     this._kernelSpecManager = options.kernelSpecManager;
     const specs = this._kernelSpecManager.specs;
@@ -74,10 +75,6 @@ export class AppModel {
 
   get staticRender() {
     return this._staticRender;
-  }
-
-  get snapshotData(): ISpectaSnapshotData | undefined {
-    return this._notebookModelJson.metadata[SPECTA_SNAPSHOT_KEY];
   }
 
   dispose(): void {
@@ -137,15 +134,10 @@ export class AppModel {
     });
     if (this._staticRender) {
       const snapshot = this.getSnapshot();
-      if (!snapshot) {
-        throw new Error('Snapshot not found');
-      }
       if (!snapshot?.notebook) {
         throw new Error('Snapshot notebook not found');
       }
-      const notebookModel = JSON.parse(
-        JSON.stringify(snapshot.notebook)
-      ) as INotebookContentWithSnapshot;
+      const notebookModel = snapshot.notebook as INotebookContentWithSnapshot;
 
       notebookModel.metadata['widgets'] = {
         [WIDGET_STATE_MIMETYPE]: snapshot.widgetStates
@@ -170,7 +162,7 @@ export class AppModel {
 
       (this.options.tracker as any).add(this._notebookPanel);
     } else {
-      this._context.model.fromJSON(this._notebookModelJson);
+      this._context.model.fromJSON(this._documentJson());
       this._notebookPanel = createNotebookPanel({
         context: this._context!,
         rendermime: this.options.rendermime,
@@ -286,7 +278,7 @@ export class AppModel {
   async executeCell(
     cell: ICellModel,
     outputWrapper: SpectaCellOutput
-  ): Promise<IExecuteReplyMsg | undefined> {
+  ): Promise<any> {
     if (cell.type !== 'code' || !this._context) {
       return;
     }
@@ -313,11 +305,13 @@ export class AppModel {
       emitResizeEvent();
       outputWrapper.removePlaceholder();
     });
-    return rep;
+    return Promise.all([rep, output.future.done]);
   }
 
   getSnapshot(): ISpectaSnapshotData | undefined {
-    return this._notebookModelJson.metadata[SPECTA_SNAPSHOT_KEY];
+    return this.options.context.model.getMetadata(
+      SPECTA_SNAPSHOT_KEY
+    ) as unknown as ISpectaSnapshotData | undefined;
   }
 
   snapshotStatus(): 'out-of-sync' | 'in-sync' | 'not-exist' {
@@ -325,35 +319,36 @@ export class AppModel {
     if (!sn) {
       return 'not-exist';
     }
-    const hash = computeHash(
-      this._notebookModelJson.cells.map(it => it.source).join('\n')
+
+    const sources = Array.from(this.options.context.model.cells, cell =>
+      cell.sharedModel.getSource()
     );
-    if (hash === sn.hash) {
-      return 'in-sync';
-    }
-    return 'out-of-sync';
+    return snapshotHash(sources) === sn.hash ? 'in-sync' : 'out-of-sync';
   }
   async saveSnapshotToMetadata(snapshot: ISpectaSnapshotData): Promise<void> {
-    if (this.options.context) {
-      this.options.context.model.setMetadata(SPECTA_SNAPSHOT_KEY, snapshot);
-      await this.options.context.save();
-      this.options.context.model.dirty = false;
-    }
+    this.options.context.model.setMetadata(SPECTA_SNAPSHOT_KEY, snapshot);
+    await this.options.context.save();
+    this.options.context.model.dirty = false;
   }
 
   async deleteSnapshot(): Promise<void> {
-    if (this.options.context) {
-      this.options.context.model.deleteMetadata(SPECTA_SNAPSHOT_KEY);
-      await this.options.context.save();
-      this.options.context.model.dirty = false;
-    }
+    this.options.context.model.deleteMetadata(SPECTA_SNAPSHOT_KEY);
+    await this.options.context.save();
+    this.options.context.model.dirty = false;
+  }
+
+  private _documentJson(): INotebookContentWithSnapshot {
+    const json =
+      this.options.context.model.toJSON() as INotebookContentWithSnapshot;
+    delete json.metadata[SPECTA_SNAPSHOT_KEY];
+    return json;
   }
 
   private _kernelReady = new PromiseDelegate<void>();
 
   private _notebookPanel?: NotebookPanel;
   private _context?: DocumentRegistry.IContext<INotebookModel>;
-  private _notebookModelJson: INotebookContentWithSnapshot;
+
   private _isDisposed = false;
   private _manager: ServiceManager.IManager;
   private _fileChanged = new Signal<this, CellList>(this);
