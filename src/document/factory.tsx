@@ -106,7 +106,6 @@ export class NotebookGridWidgetFactory extends ABCWidgetFactory<
             if (titleWidget) {
               titleWidget.addClass('specta-topbar-title-wrapper');
             }
-            console.log('im here adding menu to topbar');
             this._spectaTopbar.addReactWidget(menu, 'right', 10000);
           }
         }
@@ -114,7 +113,6 @@ export class NotebookGridWidgetFactory extends ABCWidgetFactory<
         this._shell.hideTopBar();
       }
 
-      console.log('im here', topbarTarget);
       if (spectaWidget) {
         content.addWidget(spectaWidget);
         if (topbarTarget?.addReactWidget) {

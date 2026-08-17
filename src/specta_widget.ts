@@ -204,13 +204,14 @@ export class AppWidget extends Panel {
       notebook,
       widgetStates: null
     };
-    for (const el of this._outputs) {
+    for (const [idx, el] of this._outputs.entries()) {
       if (el.info.hidden || el.info.cellModel?.cell_type !== 'code') {
         continue;
       }
       const output = el.cellOutput as SimplifiedOutputArea;
 
       const outputModels = output.model.toJSON();
+      notebook.cells[idx].outputs = outputModels;
       if (!snapshot.widgetStates) {
         for (let index = 0; index < outputModels.length; index++) {
           const data =
@@ -254,7 +255,6 @@ export class AppWidget extends Panel {
         }
       }
     }
-    console.log('done', snapshot);
     await this._model.saveSnapshotToMetadata(snapshot);
     return timestamp;
   }

@@ -1,4 +1,4 @@
-import { ISessionContext } from '@jupyterlab/apputils';
+import { Dialog, ISessionContext, showDialog } from '@jupyterlab/apputils';
 import {
   CodeCell,
   CodeCellModel,
@@ -24,7 +24,7 @@ import { OutputAreaModel, SimplifiedOutputArea } from '@jupyterlab/outputarea';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { KernelSpec, ServiceManager } from '@jupyterlab/services';
 import { IExecuteReplyMsg } from '@jupyterlab/services/lib/kernel/messages';
-import { PromiseDelegate } from '@lumino/coreutils';
+import { PromiseDelegate, UUID } from '@lumino/coreutils';
 
 import {
   createNotebookContext,
@@ -121,16 +121,37 @@ export class AppModel {
       filePath: this._filePath
     });
     if (this._staticRender) {
-      const notebookModel = JSON.parse(
-        JSON.stringify(this._notebookModelJson)
-      ) as INotebookContentWithSnapshot;
-      const snapshot = notebookModel.metadata.spectaSnapshot;
+      const snapshotStatus = this.snapshotStatus();
+      if (snapshotStatus === 'out-of-sync') {
+        const response = await showDialog({
+          body: 'Do you want to use existing snapshot or re-run the notebook using a kernel?',
+          title: 'Snapshot out of sync',
+          buttons: [
+            Dialog.cancelButton({ label: 'Continue' }),
+            Dialog.okButton({ label: 'Activate kernel' })
+          ]
+        });
+        if (response.button.accept) {
+          this._staticRender = false;
+        }
+      }
+    }
+    if (this._staticRender) {
+      const snapshot = this.getSnapshot();
       if (!snapshot) {
         throw new Error('Snapshot not found');
       }
+      if (!snapshot?.notebook) {
+        throw new Error('Snapshot notebook not found');
+      }
+      const notebookModel = JSON.parse(
+        JSON.stringify(snapshot.notebook)
+      ) as INotebookContentWithSnapshot;
+
       notebookModel.metadata['widgets'] = {
         [WIDGET_STATE_MIMETYPE]: snapshot.widgetStates
       } as any;
+
       this._context.model.fromJSON(notebookModel);
       this._notebookPanel = createNotebookPanel({
         context: this._context!,
@@ -138,9 +159,10 @@ export class AppModel {
         editorServices: this.options.editorServices
       });
       await this._context.sessionContext.initialize();
+      const kernelUUID = UUID.uuid4();
       (this._context.sessionContext as any)._session = {
         kernel: {
-          id: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
+          id: kernelUUID,
           registerCommTarget: () => {},
           handleComms: false,
           requestCommInfo: async () => ({ content: { status: undefined } })
@@ -290,7 +312,6 @@ export class AppModel {
   }
 
   snapshotStatus(): 'out-of-sync' | 'in-sync' | 'not-exist' {
-    console.log('ggggggg', this);
     const sn = this.getSnapshot();
     if (!sn) {
       return 'not-exist';

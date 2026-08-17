@@ -274,12 +274,14 @@ export const SettingContent = (props: {
             flexDirection: 'column'
           }}
         >
-          <div style={{ flexGrow: 1, display: 'flex', alignItems: 'center' }}>
-            Last snapshot:{' '}
-            {currentTimestamp
-              ? new Date(currentTimestamp).toLocaleString()
-              : 'Unavailable'}
-          </div>
+          {snapshotStatus !== 'not-exist' && (
+            <div style={{ flexGrow: 1, display: 'flex', alignItems: 'center' }}>
+              Last snapshot:{' '}
+              {currentTimestamp
+                ? new Date(currentTimestamp).toLocaleString()
+                : 'Unavailable'}
+            </div>
+          )}
           <div style={{ flexGrow: 1, display: 'flex', alignItems: 'center' }}>
             {snapshotStatus === 'not-exist'
               ? 'No snapshot found'
