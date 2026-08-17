@@ -21,6 +21,7 @@ import {
   IWidgetManagerLike,
   snapshotHash,
   SPECTA_SNAPSHOT_KEY,
+  SPECTA_SNAPSHOT_VERSION,
   WIDGET_VIEW_MIMETYPE
 } from './snapshot/tools';
 import { SimplifiedOutputArea } from '@jupyterlab/outputarea';
@@ -152,7 +153,7 @@ export class AppWidget extends Panel {
     await spectaLayout.render({
       host: this._host,
       items: this._outputs,
-      notebook: this._model.context?.model.toJSON() as any,
+      notebook: this._model.sandboxContext?.model.toJSON() as any,
       readyCallback,
       spectaConfig: this._spectaAppConfig
     });
@@ -179,7 +180,7 @@ export class AppWidget extends Panel {
     await spectaLayout.render({
       host: this._host,
       items: this._outputs,
-      notebook: this._model.context?.model.toJSON() as any,
+      notebook: this._model.sandboxContext?.model.toJSON() as any,
       readyCallback: async () => {},
       spectaConfig: this._spectaAppConfig
     });
@@ -200,7 +201,9 @@ export class AppWidget extends Panel {
     if (this._model.staticRender) {
       return;
     }
-
+    if (this._model.resyncSandbox()) {
+      await this.rerender();
+    }
     const outputs = this._outputs;
     await Promise.all(outputs.map(el => el.executionDone));
     if (outputs !== this._outputs) {
@@ -208,7 +211,8 @@ export class AppWidget extends Panel {
       return;
     }
     await nextFrame();
-    const notebook = this._model.context?.model.toJSON() as INotebookContent;
+    const notebook =
+      this._model.sandboxContext?.model.toJSON() as INotebookContent;
 
     if (notebook.metadata?.[SPECTA_SNAPSHOT_KEY]) {
       delete notebook['metadata'][SPECTA_SNAPSHOT_KEY];
@@ -216,6 +220,7 @@ export class AppWidget extends Panel {
 
     const timestamp = Date.now();
     const snapshot: ISpectaSnapshotData = {
+      version: SPECTA_SNAPSHOT_VERSION,
       hash: snapshotHash(notebook.cells.map(it => it.source)),
       timestamp,
       notebook,
@@ -303,7 +308,7 @@ export class AppWidget extends Panel {
     layout.render({
       host: this._host,
       items: this._outputs,
-      notebook: this._model.context?.model.toJSON() as any,
+      notebook: this._model.sandboxContext?.model.toJSON() as any,
       readyCallback: async () => {},
       spectaConfig: this._spectaAppConfig
     });
