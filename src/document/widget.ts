@@ -8,7 +8,6 @@ import {
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { ServiceManager } from '@jupyterlab/services';
 import { Widget } from '@lumino/widgets';
-import { AppWidget } from '../specta_widget';
 
 export interface ISpectaOptions {
   manager: ServiceManager;
@@ -24,14 +23,6 @@ export class NotebookSpectaDocWidget extends DocumentWidget<
 > {
   constructor(options: DocumentWidget.IOptions<Widget, INotebookModel>) {
     super(options);
-  }
-
-  getSpectaWidget(): AppWidget | undefined {
-    for (const element of this.content.children()) {
-      if (element instanceof AppWidget) {
-        return element;
-      }
-    }
   }
 
   dispose(): void {

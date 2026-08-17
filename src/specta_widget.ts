@@ -16,16 +16,7 @@ import {
   isSpectaApp,
   nextFrame
 } from './tool';
-import {
-  ISpectaSnapshotData,
-  IWidgetManagerLike,
-  snapshotHash,
-  SPECTA_SNAPSHOT_KEY,
-  SPECTA_SNAPSHOT_VERSION,
-  WIDGET_VIEW_MIMETYPE
-} from './snapshot/tools';
-import { SimplifiedOutputArea } from '@jupyterlab/outputarea';
-import { INotebookContent } from '@jupyterlab/nbformat';
+import { captureSnapshot } from './snapshot/capture';
 
 export class AppWidget extends Panel {
   constructor(options: AppWidget.IOptions) {
@@ -211,82 +202,13 @@ export class AppWidget extends Panel {
       return;
     }
     await nextFrame();
-    const notebook =
-      this._model.sandboxContext?.model.toJSON() as INotebookContent;
-
-    if (notebook.metadata?.[SPECTA_SNAPSHOT_KEY]) {
-      delete notebook['metadata'][SPECTA_SNAPSHOT_KEY];
+    const sandbox = this._model.sandboxContext;
+    if (!sandbox) {
+      return;
     }
-
-    const timestamp = Date.now();
-    const snapshot: ISpectaSnapshotData = {
-      version: SPECTA_SNAPSHOT_VERSION,
-      hash: snapshotHash(notebook.cells.map(it => it.source)),
-      timestamp,
-      notebook,
-      widgetStates: null
-    };
-    for (const el of outputs) {
-      if (
-        el.info.hidden ||
-        el.info.cellModel?.cell_type !== 'code' ||
-        el.info.cellIndex === undefined
-      ) {
-        continue;
-      }
-      const output = el.cellOutput as SimplifiedOutputArea;
-
-      const outputModels = output.model.toJSON();
-      const target = notebook.cells[el.info.cellIndex];
-      if (!target) {
-        continue;
-      }
-      target.outputs = outputModels;
-      if (!snapshot.widgetStates) {
-        for (let index = 0; index < outputModels.length; index++) {
-          const data =
-            (outputModels[index]?.data as Record<string, unknown>) ?? {};
-          const viewSpec = data[WIDGET_VIEW_MIMETYPE] as
-            | {
-                model_id?: string;
-                version_major?: number;
-                version_minor?: number;
-              }
-            | undefined;
-          if (!viewSpec?.model_id) {
-            continue;
-          }
-
-          const outputWidget = output.widgets[index];
-          if (!outputWidget) {
-            continue;
-          }
-          for (const child of outputWidget.children()) {
-            const renderer = child as Widget & {
-              mimeType?: string;
-              _manager?: { promise: Promise<IWidgetManagerLike> };
-            };
-            if (renderer.mimeType !== WIDGET_VIEW_MIMETYPE) {
-              continue;
-            }
-            if (renderer._manager) {
-              try {
-                const wm = await renderer._manager.promise;
-                snapshot.widgetStates = await wm.get_state();
-                break;
-              } catch (e) {
-                continue;
-              }
-            }
-          }
-          if (snapshot.widgetStates) {
-            break;
-          }
-        }
-      }
-    }
+    const snapshot = await captureSnapshot({ sandbox, outputs });
     await this._model.saveSnapshotToMetadata(snapshot);
-    return timestamp;
+    return snapshot.timestamp;
   }
 
   protected onCloseRequest(msg: Message): void {

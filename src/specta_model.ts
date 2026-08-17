@@ -35,10 +35,9 @@ import {
   ISpectaSnapshotData,
   SPECTA_SNAPSHOT_KEY,
   WIDGET_STATE_MIMETYPE,
-  INotebookContentWithSnapshot,
-  parseSnapshot,
-  snapshotHash
-} from './snapshot/tools';
+  parseSnapshot
+} from './snapshot/format';
+import { snapshotHash } from './snapshot/hash';
 import { ISignal, Signal } from '@lumino/signaling';
 import { INotebookContent } from '@jupyterlab/nbformat';
 
@@ -146,8 +145,7 @@ export class AppModel {
     });
     this._sandboxJson = undefined;
     if (this._staticRender && snapshot) {
-      const notebookModel = snapshot.notebook as INotebookContentWithSnapshot;
-
+      const notebookModel = snapshot.notebook;
       notebookModel.metadata['widgets'] = {
         [WIDGET_STATE_MIMETYPE]: snapshot.widgetStates
       } as any;
@@ -159,11 +157,11 @@ export class AppModel {
         editorServices: this.options.editorServices
       });
       await this._sandboxContext.sessionContext.initialize();
-      const kernelUUID = UUID.uuid4();
+
       (this._sandboxContext.sessionContext as any)._session = {
         dispose: () => {},
         kernel: {
-          id: kernelUUID,
+          id: UUID.uuid4(),
           registerCommTarget: () => {},
           handleComms: false,
           requestCommInfo: async () => ({ content: { status: undefined } })
