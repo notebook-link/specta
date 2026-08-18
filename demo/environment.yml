@@ -7,3 +7,4 @@ dependencies:
   - ipywidgets
   - ipecharts
   - matplotlib
+  - numpy
