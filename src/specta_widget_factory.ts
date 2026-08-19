@@ -14,7 +14,7 @@ import { ServiceManager, KernelSpec } from '@jupyterlab/services';
 import { AppModel } from './specta_model';
 import { AppWidget } from './specta_widget';
 import { UUID } from '@lumino/coreutils';
-import { ISpectaLayoutRegistry } from './token';
+import { IAppWidget, ISpectaLayoutRegistry } from './token';
 import { readSpectaConfig } from './tool';
 
 export class SpectaWidgetFactory {
@@ -24,7 +24,7 @@ export class SpectaWidgetFactory {
 
   async createNew(options: {
     context: DocumentRegistry.IContext<INotebookModel>;
-  }): Promise<AppWidget> {
+  }): Promise<IAppWidget> {
     const { context } = options;
     const rendermime = this._options.rendermime.clone({
       resolver: context.urlResolver

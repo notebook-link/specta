@@ -3,8 +3,14 @@ import { Panel, Widget } from '@lumino/widgets';
 import { SpectaCellOutput } from './specta_cell_output';
 import * as nbformat from '@jupyterlab/nbformat';
 import { ISignal } from '@lumino/signaling';
+import { IDisposable } from '@lumino/disposable';
 import { IWidgetTracker } from '@jupyterlab/apputils';
 import { JupyterFrontEnd } from '@jupyterlab/application';
+import { ICellModel } from '@jupyterlab/cells';
+import { DocumentRegistry } from '@jupyterlab/docregistry';
+import { CellList, INotebookModel, NotebookPanel } from '@jupyterlab/notebook';
+import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
+import type { ISpectaSnapshotData } from './snapshot';
 
 export interface ISpectaShell extends JupyterFrontEnd.IShell {
   hideTopBar: () => void;
@@ -94,6 +100,165 @@ export const ISpectaUiSwitcherToken = new Token<ISpectaUiSwitcher>(
 export interface ISpectaWidget {
   readonly node: HTMLElement;
   readonly isAttached: boolean;
+}
+
+/**
+ * The state of the render cache stored in the notebook metadata relative to
+ * the notebook itself.
+ */
+export type ISpectaSnapshotStatus = 'out-of-sync' | 'in-sync' | 'not-exist';
+
+/**
+ * The public API of the Specta app model.
+ *
+ * Import this instead of the concrete `AppModel` class wherever only typing
+ * is needed, so consumers do not pull the implementation into their bundle.
+ */
+export interface IAppModel extends IDisposable {
+  /**
+   * The rendermime registry the preview renders outputs with.
+   */
+  readonly rendermime: IRenderMimeRegistry;
+
+  /**
+   * The cells of the sandbox notebook, if it has been created.
+   */
+  readonly cells: CellList | undefined;
+
+  /**
+   * The sandbox context the preview renders from — a throwaway clone whose
+   * `save()` is a no-op, not the document context written to disk.
+   */
+  readonly sandboxContext:
+    DocumentRegistry.IContext<INotebookModel> | undefined;
+
+  /**
+   * The notebook panel backing the sandbox context.
+   */
+  readonly panel: NotebookPanel | undefined;
+
+  /**
+   * Whether the model renders from the cached snapshot instead of a kernel.
+   */
+  readonly staticRender: boolean;
+
+  /**
+   * A signal emitted with the re-seeded cells when the document changes.
+   */
+  readonly fileChanged: ISignal<IAppModel, CellList>;
+
+  /**
+   * A signal emitted when the render cache or static render mode changes.
+   */
+  readonly snapshotChanged: ISignal<IAppModel, void>;
+
+  /**
+   * Create the sandbox context and notebook panel.
+   */
+  initialize(): Promise<void>;
+
+  /**
+   * Create the output widget for a cell.
+   */
+  createCell(cellModel: ICellModel): SpectaCellOutput;
+
+  /**
+   * Leave static render mode and re-initialize against a live kernel.
+   */
+  turnOffStaticRender(): Promise<void>;
+
+  /**
+   * Bring the sandbox in line with the document, if it has drifted.
+   *
+   * Returns the re-seeded cell list, or `undefined` when the sandbox already
+   * matches.
+   */
+  resyncSandbox(): CellList | undefined;
+
+  /**
+   * Execute a code cell into the given output wrapper.
+   */
+  executeCell(cell: ICellModel, outputWrapper: SpectaCellOutput): Promise<any>;
+
+  /**
+   * The render cache stored in the notebook metadata, if any.
+   */
+  getSnapshot(): ISpectaSnapshotData | undefined;
+
+  /**
+   * Whether the render cache matches the current notebook sources.
+   */
+  snapshotStatus(): ISpectaSnapshotStatus;
+
+  /**
+   * Write a render cache to the notebook metadata and save the document.
+   */
+  saveSnapshotToMetadata(snapshot: ISpectaSnapshotData): Promise<void>;
+
+  /**
+   * Remove the render cache from the notebook metadata and save the document.
+   */
+  deleteSnapshot(): Promise<void>;
+}
+
+/**
+ * The public API of the Specta app widget.
+ *
+ * Import this instead of the concrete `AppWidget` class wherever only typing
+ * is needed, so consumers do not pull the implementation into their bundle.
+ */
+export interface IAppWidget extends Widget {
+  /**
+   * A promise that is fulfilled when the model is ready.
+   */
+  readonly ready: Promise<void>;
+
+  /**
+   * The model driving this widget.
+   */
+  readonly model: IAppModel;
+
+  /**
+   * Add the loading spinner.
+   */
+  addSpinner(): void;
+
+  /**
+   * Remove the loading spinner.
+   */
+  removeSpinner(): void;
+
+  /**
+   * Create and start executing the output widgets for the given cells.
+   */
+  generateOutputs(cellList?: CellList): Promise<SpectaCellOutput[]>;
+
+  /**
+   * The layout this widget renders with.
+   */
+  getLayout(): ISpectaLayout;
+
+  /**
+   * Render the notebook into the host panel.
+   */
+  render(): Promise<void>;
+
+  /**
+   * Discard the current outputs and render again.
+   */
+  rerender(newCells?: CellList): Promise<void>;
+
+  /**
+   * Leave static render mode and render against a live kernel.
+   */
+  turnOffStaticRender(): Promise<void>;
+
+  /**
+   * Capture the current outputs into the render cache.
+   *
+   * Returns the snapshot timestamp, or `undefined` if nothing was saved.
+   */
+  saveSnapshot(): Promise<number | undefined>;
 }
 
 export interface ISpectaTopbarWidget {

@@ -41,8 +41,9 @@ import {
 
 import { ISignal, Signal } from '@lumino/signaling';
 import { INotebookContent } from '@jupyterlab/nbformat';
+import { IAppModel, ISpectaSnapshotStatus } from './token';
 
-export class AppModel {
+export class AppModel implements IAppModel {
   constructor(private options: AppModel.IOptions) {
     this._staticRender = Boolean(this.getSnapshot());
     this._filePath = options.context.localPath;
@@ -75,7 +76,7 @@ export class AppModel {
     return this._fileChanged;
   }
 
-  get staticRender() {
+  get staticRender(): boolean {
     return this._staticRender;
   }
   get snapshotChanged(): ISignal<this, void> {
@@ -275,7 +276,7 @@ export class AppModel {
     return item;
   }
 
-  async turnOffStaticRender() {
+  async turnOffStaticRender(): Promise<void> {
     if (!this._staticRender) {
       return;
     }
@@ -348,7 +349,7 @@ export class AppModel {
     );
   }
 
-  snapshotStatus(): 'out-of-sync' | 'in-sync' | 'not-exist' {
+  snapshotStatus(): ISpectaSnapshotStatus {
     const sn = this.getSnapshot();
     if (!sn) {
       return 'not-exist';

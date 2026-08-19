@@ -2,13 +2,13 @@ import { IThemeManager } from '@jupyterlab/apputils';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Divider } from '../components/divider';
 import {
+  IAppWidget,
   ISpectaLayoutRegistry,
   ISpectaUiSwitcher,
   ITopbarConfig,
   ISpectaWidget
 } from '../token';
 import { Widget } from '@lumino/widgets';
-import type { AppWidget } from '../specta_widget';
 import { StaticRenderingSection } from './staticRenderingSection';
 
 export const SettingContent = (props: {
@@ -19,7 +19,7 @@ export const SettingContent = (props: {
   uiSwitcher?: ISpectaUiSwitcher | null;
   currentPath?: string | null;
   currentUi?: string;
-  spectaWidget?: AppWidget;
+  spectaWidget?: IAppWidget;
   isSpectaApp?: boolean;
   enableStaticRenderingConfig?: boolean;
 }) => {

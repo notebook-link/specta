@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
-import type { AppModel } from '../specta_model';
-import type { AppWidget } from '../specta_widget';
+import { IAppModel, IAppWidget } from '../token';
 
 type ISnapshotState = {
   status: 'out-of-sync' | 'in-sync' | 'not-exist';
@@ -9,7 +8,7 @@ type ISnapshotState = {
   staticRender: boolean;
 };
 
-function readSnapshotState(model?: AppModel): ISnapshotState {
+function readSnapshotState(model?: IAppModel): ISnapshotState {
   return {
     status: model?.snapshotStatus() ?? 'not-exist',
     timestamp: model?.getSnapshot()?.timestamp,
@@ -18,7 +17,7 @@ function readSnapshotState(model?: AppModel): ISnapshotState {
 }
 
 export const StaticRenderingSection = (props: {
-  spectaWidget?: AppWidget;
+  spectaWidget?: IAppWidget;
   isSpectaApp?: boolean;
 }) => {
   const model = props.spectaWidget?.model;

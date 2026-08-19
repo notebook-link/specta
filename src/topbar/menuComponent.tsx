@@ -5,8 +5,12 @@ import { ISignal } from '@lumino/signaling';
 import { GearIcon } from '../components/icon/gear';
 import { IconButton } from '../components/iconButton';
 import { SettingContent } from './settingDialog';
-import { ISpectaUiSwitcher, ITopbarConfig, ISpectaWidget } from '../token';
-import type { AppWidget } from '../specta_widget';
+import {
+  IAppWidget,
+  ISpectaUiSwitcher,
+  ITopbarConfig,
+  ISpectaWidget
+} from '../token';
 
 interface IProps {
   config?: ITopbarConfig;
@@ -14,7 +18,7 @@ interface IProps {
   settingsWidgets?: ISpectaWidget[];
   uiSwitcher?: ISpectaUiSwitcher | null;
   currentPath?: string | null;
-  spectaWidget?: AppWidget;
+  spectaWidget?: IAppWidget;
   currentUi?: string;
   settingsIconChanged?: ISignal<any, JSX.Element>;
   customIcon?: JSX.Element;
