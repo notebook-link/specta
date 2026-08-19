@@ -1,4 +1,4 @@
-import { ISessionContext } from '@jupyterlab/apputils';
+import { Dialog, showDialog } from '@jupyterlab/apputils';
 import {
   CodeCell,
   CodeCellModel,
@@ -23,8 +23,7 @@ import {
 import { OutputAreaModel, SimplifiedOutputArea } from '@jupyterlab/outputarea';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { KernelSpec, ServiceManager } from '@jupyterlab/services';
-import { IExecuteReplyMsg } from '@jupyterlab/services/lib/kernel/messages';
-import { PartialJSONValue, PromiseDelegate } from '@lumino/coreutils';
+import { PromiseDelegate, UUID } from '@lumino/coreutils';
 
 import {
   createNotebookContext,
@@ -32,23 +31,29 @@ import {
 } from './create_notebook_panel';
 import { SpectaCellOutput } from './specta_cell_output';
 import { emitResizeEvent, readCellConfig } from './tool';
+import {
+  ISpectaSnapshotData,
+  SPECTA_SNAPSHOT_KEY,
+  WIDGET_STATE_MIMETYPE,
+  parseSnapshot,
+  snapshotHash
+} from './snapshot';
+
 import { ISignal, Signal } from '@lumino/signaling';
+import { INotebookContent } from '@jupyterlab/nbformat';
 
 export class AppModel {
   constructor(private options: AppModel.IOptions) {
-    this._notebookModelJson = options.context.model.toJSON();
+    this._staticRender = Boolean(this.getSnapshot());
     this._filePath = options.context.localPath;
-    this._kernelPreference = {
-      shouldStart: true,
-      canStart: true,
-      shutdownOnDispose: true,
-      name: options.context.model.defaultKernelName,
-      autoStartDefault: true,
-      language: options.context.model.defaultKernelLanguage
-    };
     this._manager = options.manager;
-    options.context.fileChanged.connect(e => {
-      this._fileChanged.emit(e.model.cells);
+
+    options.context.fileChanged.connect(() => {
+      const cells = this.resyncSandbox();
+      if (cells) {
+        this._fileChanged.emit(cells);
+      }
+      this._snapshotChanged.emit();
     });
     this._kernelSpecManager = options.kernelSpecManager;
     const specs = this._kernelSpecManager.specs;
@@ -70,13 +75,21 @@ export class AppModel {
     return this._fileChanged;
   }
 
+  get staticRender() {
+    return this._staticRender;
+  }
+  get snapshotChanged(): ISignal<this, void> {
+    return this._snapshotChanged;
+  }
+
   dispose(): void {
     if (this.isDisposed) {
       return;
     }
     this._isDisposed = true;
-    this._context?.dispose();
+    this._sandboxContext?.dispose();
     this._notebookPanel?.dispose();
+    Signal.clearData(this);
   }
 
   get rendermime(): IRenderMimeRegistry {
@@ -84,30 +97,90 @@ export class AppModel {
   }
 
   get cells(): CellList | undefined {
-    return this._context?.model.cells;
+    return this._sandboxContext?.model.cells;
   }
 
-  get context(): DocumentRegistry.IContext<INotebookModel> | undefined {
-    return this._context;
+  /**
+   * The sandbox context the preview renders from — a throwaway clone at a
+   * random path whose `save()` is a no-op. Not the document context, which
+   * lives at `options.context` and is what gets written to disk.
+   */
+  get sandboxContext(): DocumentRegistry.IContext<INotebookModel> | undefined {
+    return this._sandboxContext;
   }
   get panel(): NotebookPanel | undefined {
     return this._notebookPanel;
   }
   async initialize(): Promise<void> {
-    this._context = await createNotebookContext({
+    let snapshot = this._staticRender ? this.getSnapshot() : undefined;
+    if (this._staticRender && !snapshot) {
+      // Unreadable snapshot, wrong version, or malformed.
+      this._staticRender = false;
+    }
+    if (snapshot && this.snapshotStatus() === 'out-of-sync') {
+      const response = await showDialog({
+        body: 'Do you want to use existing cache or re-run the notebook using a kernel?',
+        title: 'Render cache out of sync',
+        buttons: [
+          Dialog.cancelButton({ label: 'Use cache' }),
+          Dialog.okButton({ label: 'Render with kernel' })
+        ]
+      });
+      if (response.button.accept) {
+        this._staticRender = false;
+        snapshot = undefined;
+      }
+    }
+    const kernelPreference = {
+      shouldStart: !this._staticRender,
+      canStart: !this._staticRender,
+      shutdownOnDispose: !this._staticRender,
+      name: this.options.context.model.defaultKernelName,
+      autoStartDefault: !this._staticRender,
+      language: this.options.context.model.defaultKernelLanguage
+    };
+    this._sandboxContext = await createNotebookContext({
       manager: this._manager,
-      kernelPreference: this._kernelPreference,
+      kernelPreference: kernelPreference,
       filePath: this._filePath
     });
-    this._context.model.fromJSON(this._notebookModelJson);
+    this._sandboxJson = undefined;
+    if (this._staticRender && snapshot) {
+      const notebookModel = snapshot.notebook;
+      notebookModel.metadata['widgets'] = {
+        [WIDGET_STATE_MIMETYPE]: snapshot.widgetStates
+      } as any;
 
-    this._notebookPanel = createNotebookPanel({
-      context: this._context!,
-      rendermime: this.options.rendermime,
-      editorServices: this.options.editorServices
-    });
-    (this.options.tracker as any).add(this._notebookPanel);
-    await this._context.sessionContext.initialize();
+      this._sandboxContext.model.fromJSON(notebookModel);
+      this._notebookPanel = createNotebookPanel({
+        context: this._sandboxContext!,
+        rendermime: this.options.rendermime,
+        editorServices: this.options.editorServices
+      });
+      await this._sandboxContext.sessionContext.initialize();
+
+      (this._sandboxContext.sessionContext as any)._session = {
+        dispose: () => {},
+        kernel: {
+          id: UUID.uuid4(),
+          registerCommTarget: () => {},
+          handleComms: false,
+          requestCommInfo: async () => ({ content: { status: undefined } })
+        }
+      };
+
+      (this.options.tracker as any).add(this._notebookPanel);
+    } else {
+      this.resyncSandbox();
+      this._notebookPanel = createNotebookPanel({
+        context: this._sandboxContext!,
+        rendermime: this.options.rendermime,
+        editorServices: this.options.editorServices
+      });
+      (this.options.tracker as any).add(this._notebookPanel);
+      await this._sandboxContext.sessionContext.initialize();
+    }
+    this._snapshotChanged.emit();
   }
 
   createCell(cellModel: ICellModel): SpectaCellOutput {
@@ -120,6 +193,7 @@ export class AppModel {
     switch (cellModel.type) {
       case 'code': {
         let sourceCell: CodeCell | undefined;
+
         cellModel.sharedModel.transact(() => {
           (cellModel as CodeCellModel).clearExecution();
         }, false);
@@ -138,7 +212,12 @@ export class AppModel {
           sourceCell.syncEditable = false;
           sourceCell.readOnly = true;
         }
+
         const outputareamodel = new OutputAreaModel({ trusted: true });
+
+        if (this._staticRender && cellModelJson.outputs) {
+          outputareamodel.fromJSON(cellModelJson.outputs as any);
+        }
         const out = new SimplifiedOutputArea({
           model: outputareamodel,
           rendermime: this.options.rendermime
@@ -196,11 +275,50 @@ export class AppModel {
     return item;
   }
 
+  async turnOffStaticRender() {
+    if (!this._staticRender) {
+      return;
+    }
+    this._staticRender = false;
+    this._notebookPanel?.dispose();
+    this._notebookPanel = undefined;
+    this._sandboxContext?.dispose();
+    this._sandboxContext = undefined;
+    await this.initialize();
+    this._snapshotChanged.emit();
+  }
+
+  /**
+   * Bring the sandbox in line with the document, if it has drifted.
+   *
+   * Returns the re-seeded cell list, or `undefined` when the sandbox already
+   * matches — which is the case for metadata-only writes such as our own
+   * snapshot save, so those no longer re-execute the notebook.
+   */
+  resyncSandbox(): CellList | undefined {
+    if (!this._sandboxContext || this._staticRender) {
+      return undefined;
+    }
+    const json = this._documentJson();
+    const serialized = JSON.stringify(json);
+    if (serialized === this._sandboxJson) {
+      return undefined;
+    }
+    this._sandboxJson = serialized;
+    this._sandboxContext.model.fromJSON(json);
+    return this._sandboxContext.model.cells;
+  }
+
   async executeCell(
     cell: ICellModel,
     outputWrapper: SpectaCellOutput
-  ): Promise<IExecuteReplyMsg | undefined> {
-    if (cell.type !== 'code' || !this._context) {
+  ): Promise<any> {
+    if (cell.type !== 'code' || !this._sandboxContext) {
+      return;
+    }
+
+    if (this._staticRender) {
+      outputWrapper.removePlaceholder();
       return;
     }
     const specs = this._kernelSpecManager.specs;
@@ -210,30 +328,73 @@ export class AppModel {
       await this._kernelReady.promise;
     }
     const output = outputWrapper.cellOutput as SimplifiedOutputArea;
+
     const source = cell.sharedModel.source;
     const rep = await SimplifiedOutputArea.execute(
       source,
       output,
-      this._context.sessionContext
+      this._sandboxContext.sessionContext
     );
     output.future.done.then(() => {
       emitResizeEvent();
       outputWrapper.removePlaceholder();
     });
-    return rep;
+    return Promise.all([rep, output.future.done]);
+  }
+
+  getSnapshot(): ISpectaSnapshotData | undefined {
+    return parseSnapshot(
+      this.options.context.model.getMetadata(SPECTA_SNAPSHOT_KEY)
+    );
+  }
+
+  snapshotStatus(): 'out-of-sync' | 'in-sync' | 'not-exist' {
+    const sn = this.getSnapshot();
+    if (!sn) {
+      return 'not-exist';
+    }
+
+    const documentHash = snapshotHash(
+      Array.from(this.options.context.model.cells, cell =>
+        cell.sharedModel.getSource()
+      )
+    );
+    return documentHash === sn.hash ? 'in-sync' : 'out-of-sync';
+  }
+  async saveSnapshotToMetadata(snapshot: ISpectaSnapshotData): Promise<void> {
+    this.options.context.model.setMetadata(SPECTA_SNAPSHOT_KEY, snapshot);
+    await this.options.context.save();
+    this.options.context.model.dirty = false;
+    this._snapshotChanged.emit();
+  }
+
+  async deleteSnapshot(): Promise<void> {
+    this.options.context.model.deleteMetadata(SPECTA_SNAPSHOT_KEY);
+    await this.options.context.save();
+    this.options.context.model.dirty = false;
+    this._snapshotChanged.emit();
+  }
+
+  private _documentJson(): INotebookContent {
+    const json = this.options.context.model.toJSON() as INotebookContent;
+    delete json.metadata[SPECTA_SNAPSHOT_KEY];
+    return json;
   }
 
   private _kernelReady = new PromiseDelegate<void>();
 
   private _notebookPanel?: NotebookPanel;
-  private _context?: DocumentRegistry.IContext<INotebookModel>;
-  private _notebookModelJson: PartialJSONValue;
+  private _sandboxContext?: DocumentRegistry.IContext<INotebookModel>;
+
   private _isDisposed = false;
   private _manager: ServiceManager.IManager;
-  private _kernelPreference: ISessionContext.IKernelPreference;
   private _fileChanged = new Signal<this, CellList>(this);
   private _filePath: string;
   private _kernelSpecManager: KernelSpec.IManager;
+  private _staticRender = false;
+  private _sandboxJson?: string;
+
+  private _snapshotChanged = new Signal<this, void>(this);
 }
 
 export namespace AppModel {

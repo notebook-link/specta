@@ -4,13 +4,19 @@ import { Message } from '@lumino/messaging';
 import { Panel, Widget } from '@lumino/widgets';
 
 import { SpectaCellOutput } from './specta_cell_output';
-import { AppModel } from './specta_model';
+import type { AppModel } from './specta_model';
 import {
   ISpectaAppConfig,
   ISpectaLayout,
   ISpectaLayoutRegistry
 } from './token';
-import { emitResizeEvent, hideAppLoadingIndicator, isSpectaApp } from './tool';
+import {
+  emitResizeEvent,
+  hideAppLoadingIndicator,
+  isSpectaApp,
+  nextFrame
+} from './tool';
+import { captureSnapshot } from './snapshot';
 
 export class AppWidget extends Panel {
   constructor(options: AppWidget.IOptions) {
@@ -49,7 +55,9 @@ export class AppWidget extends Panel {
       this
     );
     this._model.fileChanged.connect((_, newCells) => {
-      this.rerender(newCells);
+      if (!this._model.staticRender) {
+        this.rerender(newCells);
+      }
     });
   }
 
@@ -101,15 +109,19 @@ export class AppWidget extends Panel {
     if (!cellList) {
       return outs;
     }
+    let index = 0;
     for (const cell of cellList) {
       const src = cell.sharedModel.source;
-
       if (src.length === 0) {
+        index++;
         continue;
       }
       const el = this._model.createCell(cell);
-      this._model.executeCell(cell, el);
-
+      el.info.cellIndex = index++;
+      el.executionDone = this._model
+        .executeCell(cell, el)
+        .then(() => undefined)
+        .catch(() => undefined);
       outs.push(el);
     }
     return outs;
@@ -132,13 +144,16 @@ export class AppWidget extends Panel {
     await spectaLayout.render({
       host: this._host,
       items: this._outputs,
-      notebook: this._model.context?.model.toJSON() as any,
+      notebook: this._model.sandboxContext?.model.toJSON() as any,
       readyCallback,
       spectaConfig: this._spectaAppConfig
     });
   }
 
-  async rerender(newCells: CellList): Promise<void> {
+  async rerender(newCells?: CellList): Promise<void> {
+    if (!newCells) {
+      newCells = this.model.cells;
+    }
     this.addSpinner();
     for (const element of this._outputs) {
       element.dispose();
@@ -156,13 +171,44 @@ export class AppWidget extends Panel {
     await spectaLayout.render({
       host: this._host,
       items: this._outputs,
-      notebook: this._model.context?.model.toJSON() as any,
+      notebook: this._model.sandboxContext?.model.toJSON() as any,
       readyCallback: async () => {},
       spectaConfig: this._spectaAppConfig
     });
 
     emitResizeEvent();
     this.removeSpinner();
+  }
+
+  async turnOffStaticRender() {
+    if (!this._model.staticRender) {
+      return;
+    }
+    await this._model.turnOffStaticRender();
+    await this.rerender();
+  }
+
+  async saveSnapshot(): Promise<number | undefined> {
+    if (this._model.staticRender) {
+      return;
+    }
+    if (this._model.resyncSandbox()) {
+      await this.rerender();
+    }
+    const outputs = this._outputs;
+    await Promise.all(outputs.map(el => el.executionDone));
+    if (outputs !== this._outputs) {
+      // A rerender landed while we were waiting; these widgets are disposed.
+      return;
+    }
+    await nextFrame();
+    const sandbox = this._model.sandboxContext;
+    if (!sandbox) {
+      return;
+    }
+    const snapshot = await captureSnapshot({ sandbox, outputs });
+    await this._model.saveSnapshotToMetadata(snapshot);
+    return snapshot.timestamp;
   }
 
   protected onCloseRequest(msg: Message): void {
@@ -184,7 +230,7 @@ export class AppWidget extends Panel {
     layout.render({
       host: this._host,
       items: this._outputs,
-      notebook: this._model.context?.model.toJSON() as any,
+      notebook: this._model.sandboxContext?.model.toJSON() as any,
       readyCallback: async () => {},
       spectaConfig: this._spectaAppConfig
     });

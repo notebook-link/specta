@@ -13,6 +13,7 @@ import { CommandRegistry } from '@lumino/commands';
 import { NotebookGridWidgetFactory } from './document/factory';
 import { PlainbNotebookModelFactory } from './document/plainb_factory';
 import { SpectaWidgetFactory } from './specta_widget_factory';
+
 import {
   ISpectaAppConfig,
   ISpectaCellConfig,
@@ -94,7 +95,8 @@ export function registerDocumentFactory(options: {
     themeManager,
     spectaLayoutRegistry,
     spectaTopbar,
-    uiSwitcher
+    uiSwitcher,
+    supportStaticRendering: true
   });
 
   // Registering the widget factory
@@ -452,4 +454,13 @@ export function openDocument(
   if (widget) {
     shell.add(widget, 'main');
   }
+}
+
+export function nextFrame(timeoutMs = 50): Promise<void> {
+  return new Promise(resolve => {
+    if (typeof requestAnimationFrame !== 'undefined') {
+      requestAnimationFrame(() => resolve());
+    }
+    setTimeout(resolve, timeoutMs);
+  });
 }

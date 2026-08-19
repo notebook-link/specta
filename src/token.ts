@@ -110,6 +110,7 @@ export interface ISpectaTopbarWidget {
   addSettingsWidget?: (widget: ISpectaWidget) => void;
   settingsWidgets?: ISpectaWidget[];
   setSettingsIcon?: (icon: JSX.Element) => void;
+  settingsIconChanged?: ISignal<any, JSX.Element>;
   customIcon?: JSX.Element;
 }
 export const ISpectaTopbarWidgetToken = new Token<ISpectaTopbarWidget>(

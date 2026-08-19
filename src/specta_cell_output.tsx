@@ -9,6 +9,7 @@ import { ISpectaCellConfig } from './token';
 export interface ICellInfo {
   hidden?: boolean;
   cellModel?: nbformat.ICell;
+  cellIndex?: number;
 }
 export class SpectaCellOutput extends Panel {
   constructor({
@@ -56,6 +57,8 @@ export class SpectaCellOutput extends Panel {
     }
   }
   readonly cellIdentity: string;
+
+  executionDone: Promise<void> = Promise.resolve();
 
   get cellOutput(): Widget {
     return this._cellOutput;

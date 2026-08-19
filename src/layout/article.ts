@@ -1,6 +1,6 @@
 import { Panel, Widget } from '@lumino/widgets';
-import { SpectaCellOutput } from '../specta_cell_output';
-import * as nbformat from '@jupyterlab/nbformat';
+import type { SpectaCellOutput } from '../specta_cell_output';
+import { INotebookContent } from '@jupyterlab/nbformat';
 import { ISpectaLayout } from '../token';
 
 class HostPanel extends Panel {
@@ -21,7 +21,7 @@ export class ArticleLayout implements ISpectaLayout {
   async render(options: {
     host: Panel;
     items: SpectaCellOutput[];
-    notebook: nbformat.INotebookContent;
+    notebook: INotebookContent;
     readyCallback: () => Promise<void>;
   }): Promise<void> {
     const { host, items, readyCallback } = options;

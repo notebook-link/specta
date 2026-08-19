@@ -6,6 +6,7 @@ import { GearIcon } from '../components/icon/gear';
 import { IconButton } from '../components/iconButton';
 import { SettingContent } from './settingDialog';
 import { ISpectaUiSwitcher, ITopbarConfig, ISpectaWidget } from '../token';
+import type { AppWidget } from '../specta_widget';
 
 interface IProps {
   config?: ITopbarConfig;
@@ -13,9 +14,12 @@ interface IProps {
   settingsWidgets?: ISpectaWidget[];
   uiSwitcher?: ISpectaUiSwitcher | null;
   currentPath?: string | null;
+  spectaWidget?: AppWidget;
   currentUi?: string;
   settingsIconChanged?: ISignal<any, JSX.Element>;
   customIcon?: JSX.Element;
+  isSpectaApp?: boolean;
+  enableStaticRenderingConfig?: boolean;
 }
 
 export function MenuComponent(props: IProps): JSX.Element {
@@ -81,6 +85,9 @@ export function MenuComponent(props: IProps): JSX.Element {
             uiSwitcher={props.uiSwitcher}
             currentPath={props.currentPath}
             currentUi={props.currentUi}
+            spectaWidget={props.spectaWidget}
+            isSpectaApp={props.isSpectaApp}
+            enableStaticRenderingConfig={props.enableStaticRenderingConfig}
           />
         </div>
       )}

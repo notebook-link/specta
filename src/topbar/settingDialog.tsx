@@ -8,6 +8,8 @@ import {
   ISpectaWidget
 } from '../token';
 import { Widget } from '@lumino/widgets';
+import type { AppWidget } from '../specta_widget';
+import { StaticRenderingSection } from './staticRenderingSection';
 
 export const SettingContent = (props: {
   config?: ITopbarConfig;
@@ -17,6 +19,9 @@ export const SettingContent = (props: {
   uiSwitcher?: ISpectaUiSwitcher | null;
   currentPath?: string | null;
   currentUi?: string;
+  spectaWidget?: AppWidget;
+  isSpectaApp?: boolean;
+  enableStaticRenderingConfig?: boolean;
 }) => {
   const { themeManager, layoutRegistry, settingsWidgets } = props;
   const [themeOptions, setThemeOptions] = useState<string[]>([
@@ -132,6 +137,7 @@ export const SettingContent = (props: {
     },
     [uiSwitcher, currentPath]
   );
+
   return (
     <div style={{ padding: '0 10px' }}>
       <p style={{ marginTop: 0, marginBottom: '5px', fontSize: '1rem' }}>
@@ -172,7 +178,9 @@ export const SettingContent = (props: {
         : true) &&
         themeManager && (
           <div>
-            <label htmlFor="">Select theme</label>
+            <label htmlFor="">
+              <b>Select theme</b>
+            </label>
             <div className="jp-select-wrapper">
               <select
                 className=" jp-mod-styled specta-topbar-theme"
@@ -198,7 +206,9 @@ export const SettingContent = (props: {
         )}
       {currentPath && uiSwitcher && uiSwitcher.uis.length > 0 && (
         <div>
-          <label htmlFor="">{uiSwitcher.label ?? 'Select UI'}</label>
+          <label htmlFor="">
+            <b>{uiSwitcher.label ?? 'Select UI'}</b>
+          </label>
           <div className="jp-select-wrapper">
             <select
               className=" jp-mod-styled specta-topbar-theme"
@@ -219,6 +229,12 @@ export const SettingContent = (props: {
             </select>
           </div>
         </div>
+      )}
+      {props.enableStaticRenderingConfig && (
+        <StaticRenderingSection
+          spectaWidget={props.spectaWidget}
+          isSpectaApp={props.isSpectaApp}
+        />
       )}
       {settingsWidgets && settingsWidgets.length > 0 && (
         <div className="specta-settings-custom-section">

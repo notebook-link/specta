@@ -25,6 +25,7 @@ interface IOptions extends DocumentRegistry.IWidgetFactoryOptions {
   spectaLayoutRegistry: ISpectaLayoutRegistry;
   spectaTopbar: ISpectaTopbarWidget;
   uiSwitcher?: ISpectaUiSwitcher | null;
+  supportStaticRendering?: boolean;
 }
 
 export class NotebookGridWidgetFactory extends ABCWidgetFactory<
@@ -38,6 +39,7 @@ export class NotebookGridWidgetFactory extends ABCWidgetFactory<
     this._themeManager = options.themeManager;
     this._spectaTopbar = options.spectaTopbar;
     this._uiSwitcher = options.uiSwitcher;
+    this._supportStaticRendering = options.supportStaticRendering;
   }
 
   protected createNewWidget(
@@ -51,6 +53,10 @@ export class NotebookGridWidgetFactory extends ABCWidgetFactory<
       const spectaConfig = readSpectaConfig({
         nbMetadata: context.model.metadata,
         nbPath: path
+      });
+
+      const spectaWidget = await this._spectaWidgetFactory.createNew({
+        context
       });
       const isSpecta = isSpectaApp();
       if (!spectaConfig.hideTopbar) {
@@ -66,7 +72,6 @@ export class NotebookGridWidgetFactory extends ABCWidgetFactory<
         } else {
           topbarWidget = this._spectaTopbar;
         }
-        const topbar = topbarWidget as TopbarWidget | undefined;
 
         const menu = (
           <MenuComponent
@@ -76,8 +81,11 @@ export class NotebookGridWidgetFactory extends ABCWidgetFactory<
             uiSwitcher={this._uiSwitcher}
             currentPath={path}
             currentUi={isSpecta ? 'specta' : 'lab'}
-            settingsIconChanged={topbar?.settingsIconChanged}
+            settingsIconChanged={topbarWidget?.settingsIconChanged}
             customIcon={topbarWidget?.customIcon}
+            spectaWidget={spectaWidget}
+            isSpectaApp={isSpecta}
+            enableStaticRenderingConfig={Boolean(this._supportStaticRendering)}
           />
         );
 
@@ -105,10 +113,6 @@ export class NotebookGridWidgetFactory extends ABCWidgetFactory<
         this._shell.hideTopBar();
       }
 
-      const spectaWidget = await this._spectaWidgetFactory.createNew({
-        context
-      });
-
       if (spectaWidget) {
         content.addWidget(spectaWidget);
       }
@@ -127,4 +131,5 @@ export class NotebookGridWidgetFactory extends ABCWidgetFactory<
   private _themeManager?: IThemeManager;
   private _spectaTopbar: ISpectaTopbarWidget;
   private _uiSwitcher?: ISpectaUiSwitcher | null;
+  private _supportStaticRendering?: boolean;
 }

@@ -233,3 +233,7 @@
     display: block;
   }
 }
+
+.specta-cell-output .jupyter-widgets-disconnected::before {
+  display: none !important;
+}

@@ -29,6 +29,13 @@
         "slides.ipynb": {
           "hideTopbar": true,
           "slidesTheme": "sky"
+        },
+        "static-rendering.ipynb": {
+          "hideTopbar": false,
+          "defaultLayout": "article",
+          "topBar": {
+            "title": "Static rendering"
+          }
         }
       },
       "labConfig": {
