@@ -68,7 +68,7 @@ export const topbarPlugin: JupyterFrontEndPlugin<
     }
     const menu = (
       <MenuComponent
-        config={config.topBar}
+        spectaConfig={config}
         themeManager={themeManager}
         settingsWidgets={widget.settingsWidgets}
         uiSwitcher={uiSwitcher}

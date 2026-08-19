@@ -276,6 +276,17 @@ export class AppModel implements IAppModel {
     return item;
   }
 
+  async setEnableStaticRendering(value: boolean): Promise<void> {
+    const currentSpectaConfig =
+      this.options.context.model.getMetadata('specta');
+    currentSpectaConfig.enableStaticRendering = value ? 'Yes' : 'No';
+    console.log('setEnableStaticRendering', currentSpectaConfig);
+    this.options.context.model.setMetadata('specta', currentSpectaConfig);
+    await this.options.context.save();
+    this.options.context.model.dirty = false;
+    this._snapshotChanged.emit();
+  }
+
   async turnOffStaticRender(): Promise<void> {
     if (!this._staticRender) {
       return;
@@ -378,6 +389,9 @@ export class AppModel implements IAppModel {
 
   private _documentJson(): INotebookContent {
     const json = this.options.context.model.toJSON() as INotebookContent;
+    // sandbox context does not need metadata, this is to avoid
+    // reloading specta view when changing specta metadata
+    delete json.metadata['specta'];
     delete json.metadata[SPECTA_SNAPSHOT_KEY];
     return json;
   }

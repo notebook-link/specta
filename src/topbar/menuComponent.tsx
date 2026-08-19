@@ -1,5 +1,5 @@
 import { IThemeManager } from '@jupyterlab/apputils';
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { ISignal } from '@lumino/signaling';
 
 import { GearIcon } from '../components/icon/gear';
@@ -8,12 +8,12 @@ import { SettingContent } from './settingDialog';
 import {
   IAppWidget,
   ISpectaUiSwitcher,
-  ITopbarConfig,
-  ISpectaWidget
+  ISpectaWidget,
+  ISpectaAppConfig
 } from '../token';
 
 interface IProps {
-  config?: ITopbarConfig;
+  spectaConfig?: ISpectaAppConfig;
   themeManager?: IThemeManager;
   settingsWidgets?: ISpectaWidget[];
   uiSwitcher?: ISpectaUiSwitcher | null;
@@ -34,6 +34,12 @@ export function MenuComponent(props: IProps): JSX.Element {
     props.customIcon
   );
 
+  const disableOutsideClick = useRef(false);
+
+  const disableOutsideClickTest = useCallback((value: boolean) => {
+    disableOutsideClick.current = value;
+  }, []);
+
   useEffect(() => {
     setCustomIcon(props.customIcon);
   }, [props.customIcon]);
@@ -41,6 +47,7 @@ export function MenuComponent(props: IProps): JSX.Element {
   useEffect(() => {
     const handleClickOutside = (e: any) => {
       if (
+        !disableOutsideClick.current &&
         dialogRef.current &&
         !dialogRef.current.contains(e.target) &&
         buttonRef.current &&
@@ -83,7 +90,7 @@ export function MenuComponent(props: IProps): JSX.Element {
         <div ref={dialogRef} className="jp-Dialog-content specta-config-dialog">
           <div className="specta-config-arrow" />
           <SettingContent
-            config={props.config}
+            spectaConfig={props.spectaConfig}
             themeManager={props.themeManager}
             settingsWidgets={props.settingsWidgets}
             uiSwitcher={props.uiSwitcher}
@@ -92,6 +99,7 @@ export function MenuComponent(props: IProps): JSX.Element {
             spectaWidget={props.spectaWidget}
             isSpectaApp={props.isSpectaApp}
             enableStaticRenderingConfig={props.enableStaticRenderingConfig}
+            disableOutsideClickTest={disableOutsideClickTest}
           />
         </div>
       )}

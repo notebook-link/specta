@@ -58,6 +58,7 @@ export interface ISpectaAppConfig {
   loadingName?: string;
   executionDelay?: number;
   uiSwitcherOptions?: IUiOption[];
+  enableStaticRendering?: boolean;
   labConfig?: {
     setSingleMode?: boolean;
     hideLeftPanel?: boolean;
@@ -108,12 +109,6 @@ export interface ISpectaWidget {
  */
 export type ISpectaSnapshotStatus = 'out-of-sync' | 'in-sync' | 'not-exist';
 
-/**
- * The public API of the Specta app model.
- *
- * Import this instead of the concrete `AppModel` class wherever only typing
- * is needed, so consumers do not pull the implementation into their bundle.
- */
 export interface IAppModel extends IDisposable {
   /**
    * The rendermime registry the preview renders outputs with.
@@ -199,14 +194,13 @@ export interface IAppModel extends IDisposable {
    * Remove the render cache from the notebook metadata and save the document.
    */
   deleteSnapshot(): Promise<void>;
+
+  /**
+   * Save static rendering preference to the notebook metadata
+   */
+  setEnableStaticRendering(value: boolean): Promise<void>;
 }
 
-/**
- * The public API of the Specta app widget.
- *
- * Import this instead of the concrete `AppWidget` class wherever only typing
- * is needed, so consumers do not pull the implementation into their bundle.
- */
 export interface IAppWidget extends Widget {
   /**
    * A promise that is fulfilled when the model is ready.

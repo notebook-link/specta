@@ -54,7 +54,7 @@ export class NotebookGridWidgetFactory extends ABCWidgetFactory<
         nbMetadata: context.model.metadata,
         nbPath: path
       });
-
+      console.log('aaaaaaaaa', spectaConfig);
       const spectaWidget = await this._spectaWidgetFactory.createNew({
         context
       });
@@ -75,7 +75,7 @@ export class NotebookGridWidgetFactory extends ABCWidgetFactory<
 
         const menu = (
           <MenuComponent
-            config={spectaConfig.topBar}
+            spectaConfig={spectaConfig}
             themeManager={this._themeManager}
             settingsWidgets={topbarWidget?.settingsWidgets}
             uiSwitcher={this._uiSwitcher}
