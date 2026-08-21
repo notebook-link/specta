@@ -41,11 +41,13 @@ import {
 
 import { ISignal, Signal } from '@lumino/signaling';
 import { INotebookContent } from '@jupyterlab/nbformat';
-import { IAppModel, ISpectaSnapshotStatus } from './token';
+import { IAppModel, ISpectaAppConfig, ISpectaSnapshotStatus } from './token';
 
 export class AppModel implements IAppModel {
   constructor(private options: AppModel.IOptions) {
-    this._staticRender = Boolean(this.getSnapshot());
+    this._staticRender =
+      Boolean(options.spectaConfig.enableStaticRendering) &&
+      Boolean(this.getSnapshot());
     this._filePath = options.context.localPath;
     this._manager = options.manager;
 
@@ -280,7 +282,6 @@ export class AppModel implements IAppModel {
     const currentSpectaConfig =
       this.options.context.model.getMetadata('specta');
     currentSpectaConfig.enableStaticRendering = value ? 'Yes' : 'No';
-    console.log('setEnableStaticRendering', currentSpectaConfig);
     this.options.context.model.setMetadata('specta', currentSpectaConfig);
     await this.options.context.save();
     this.options.context.model.dirty = false;
@@ -424,6 +425,7 @@ export namespace AppModel {
     notebookConfig: StaticNotebook.INotebookConfig;
     editorServices: IEditorServices;
     kernelSpecManager: KernelSpec.IManager;
+    spectaConfig: ISpectaAppConfig;
   }
 }
 

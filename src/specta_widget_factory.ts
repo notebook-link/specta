@@ -47,7 +47,8 @@ export class SpectaWidgetFactory {
       editorConfig: StaticNotebook.defaultEditorConfig,
       notebookConfig: StaticNotebook.defaultNotebookConfig,
       editorServices: this._options.editorServices,
-      kernelSpecManager: this._options.kernelSpecManager
+      kernelSpecManager: this._options.kernelSpecManager,
+      spectaConfig
     });
 
     // Create the specta pane

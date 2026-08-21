@@ -66,6 +66,8 @@ export const StaticRenderingSection = (props: {
     if (response.button.accept !== true) {
       return;
     }
+    setEnableStaticRendering(false);
+    await model?.setEnableStaticRendering(false);
     await model?.deleteSnapshot();
   }, [model, snapshotStatus, disableOutsideClickTest]);
 
@@ -102,38 +104,44 @@ export const StaticRenderingSection = (props: {
   }, [spectaWidget, isStaticRendering]);
 
   const onStaticRenderingChange = useCallback(
-    (e: React.ChangeEvent<HTMLSelectElement>) => {
+    async (e: React.ChangeEvent<HTMLSelectElement>) => {
       const value = e.target.value === 'on';
+      if (value && snapshotStatus === 'not-exist') {
+        // Generate shapshot automatically
+        await createSnapshot();
+      }
       setEnableStaticRendering(value);
-      spectaWidget?.model.setEnableStaticRendering(value);
+      model?.setEnableStaticRendering(value);
     },
-    [spectaWidget]
+    [model, createSnapshot, snapshotStatus]
   );
   return (
     <div>
       <label htmlFor="">
         <b>Static rendering</b>
       </label>
-      <div className="jp-select-wrapper">
-        <select
-          className=" jp-mod-styled specta-topbar-theme"
-          value={enableStaticRendering ? 'on' : 'off'}
-          onChange={onStaticRenderingChange}
-        >
-          <option
-            value={'off'}
-            style={{ background: 'var(--jp-layout-color2)' }}
+      {!isSpectaApp && (
+        <div className="jp-select-wrapper">
+          <select
+            className=" jp-mod-styled specta-topbar-theme"
+            value={enableStaticRendering ? 'on' : 'off'}
+            onChange={onStaticRenderingChange}
           >
-            Disable
-          </option>
-          <option
-            value={'on'}
-            style={{ background: 'var(--jp-layout-color2)' }}
-          >
-            Enable
-          </option>
-        </select>
-      </div>
+            <option
+              value={'off'}
+              style={{ background: 'var(--jp-layout-color2)' }}
+            >
+              Disable
+            </option>
+            <option
+              value={'on'}
+              style={{ background: 'var(--jp-layout-color2)' }}
+            >
+              Enable
+            </option>
+          </select>
+        </div>
+      )}
       <div
         style={{
           marginBottom: '12px',
