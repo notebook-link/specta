@@ -75,7 +75,7 @@ export class NotebookGridWidgetFactory extends ABCWidgetFactory<
 
         const menu = (
           <MenuComponent
-            spectaConfig={spectaConfig}
+            config={spectaConfig.topBar}
             themeManager={this._themeManager}
             settingsWidgets={topbarWidget?.settingsWidgets}
             uiSwitcher={this._uiSwitcher}

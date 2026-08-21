@@ -9,11 +9,11 @@ import {
   IAppWidget,
   ISpectaUiSwitcher,
   ISpectaWidget,
-  ISpectaAppConfig
+  ITopbarConfig
 } from '../token';
 
 interface IProps {
-  spectaConfig?: ISpectaAppConfig;
+  config?: ITopbarConfig;
   themeManager?: IThemeManager;
   settingsWidgets?: ISpectaWidget[];
   uiSwitcher?: ISpectaUiSwitcher | null;
@@ -90,7 +90,7 @@ export function MenuComponent(props: IProps): JSX.Element {
         <div ref={dialogRef} className="jp-Dialog-content specta-config-dialog">
           <div className="specta-config-arrow" />
           <SettingContent
-            spectaConfig={props.spectaConfig}
+            config={props.config}
             themeManager={props.themeManager}
             settingsWidgets={props.settingsWidgets}
             uiSwitcher={props.uiSwitcher}
