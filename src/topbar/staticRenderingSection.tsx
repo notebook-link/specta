@@ -9,15 +9,31 @@ type ISnapshotState = {
   staticRender: boolean;
   enabled: boolean;
 };
+const StatusLine = (props: { children: React.ReactNode }) => (
+  <div style={{ flexGrow: 1, display: 'flex', alignItems: 'center' }}>
+    {props.children}
+  </div>
+);
 
-function readSnapshotState(model?: IAppModel): ISnapshotState {
+const formatTimestamp = (timestamp?: number) => {
+  if (!timestamp) {
+    return 'Unavailable';
+  }
+  return new Date(timestamp).toLocaleString(undefined, {
+    dateStyle: 'short',
+    timeStyle: 'short',
+    hourCycle: 'h23'
+  });
+};
+
+const readSnapshotState = (model?: IAppModel): ISnapshotState => {
   return {
     status: model?.snapshotStatus() ?? 'not-exist',
     timestamp: model?.getSnapshot()?.timestamp,
     staticRender: Boolean(model?.staticRender),
     enabled: Boolean(model?.enableStaticRendering)
   };
-}
+};
 
 export const StaticRenderingSection = (props: {
   spectaWidget?: IAppWidget;
@@ -107,6 +123,15 @@ export const StaticRenderingSection = (props: {
     }
   }, [spectaWidget, isStaticRendering, askConfirmation]);
 
+  // `staticRender` is fixed when the document is opened, so enabling the
+  // setting does not switch the view that is already on screen. Only warn once
+  // there is a cache to switch to.
+  const pendingStaticRender =
+    !isSpectaApp &&
+    enableStaticRendering &&
+    !isStaticRendering &&
+    snapshotStatus !== 'not-exist';
+
   const activateKernel = useCallback(async () => {
     if (!isStaticRendering) {
       return;
@@ -169,19 +194,21 @@ export const StaticRenderingSection = (props: {
         </div>
         {snapshotStatus !== 'not-exist' && (
           <div style={{ flexGrow: 1, display: 'flex', alignItems: 'center' }}>
-            Last cache:{' '}
-            {currentTimestamp
-              ? new Date(currentTimestamp).toLocaleString()
-              : 'Unavailable'}
+            Last cache: {formatTimestamp(currentTimestamp)}
           </div>
         )}
-        <div style={{ flexGrow: 1, display: 'flex', alignItems: 'center' }}>
-          {snapshotStatus === 'not-exist'
-            ? 'No render cache found'
-            : snapshotStatus === 'out-of-sync'
-              ? 'Render cache is out of sync with the notebook'
-              : ''}
-        </div>
+
+        {snapshotStatus === 'not-exist' && !isSpectaApp && (
+          <StatusLine>No render cache found</StatusLine>
+        )}
+        {snapshotStatus === 'out-of-sync' && (
+          <StatusLine>Render cache is out of sync with the notebook</StatusLine>
+        )}
+        {pendingStaticRender && (
+          <StatusLine>
+            Reopen the document to preview the cached render
+          </StatusLine>
+        )}
 
         <div
           style={{
@@ -225,26 +252,18 @@ export const StaticRenderingSection = (props: {
             {creatingSnapshot ? 'Saving...' : 'Save cache'}
           </button>
         </div>
-        <div
-          style={{
-            display: spectaWidget ? 'flex' : 'none',
-            justifyContent: 'center'
-          }}
-        >
-          <button
-            className="jp-mod-styled jp-mod-accept"
-            onClick={activateKernel}
-            disabled={!isStaticRendering}
-            style={{
-              cursor: !isStaticRendering ? 'not-allowed' : 'pointer',
-              flexGrow: 1,
-              opacity: !isStaticRendering ? 0.5 : 1
-            }}
-            title="Render notebook using a live kernel"
-          >
-            Render with kernel
-          </button>
-        </div>
+        {spectaWidget && isStaticRendering && (
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <button
+              className="jp-mod-styled jp-mod-accept"
+              onClick={activateKernel}
+              style={{ cursor: 'pointer', flexGrow: 1 }}
+              title="This notebook is showing saved outputs. Start a kernel to interact with it."
+            >
+              Render with kernel
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
