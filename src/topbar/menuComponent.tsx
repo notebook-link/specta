@@ -36,7 +36,7 @@ export function MenuComponent(props: IProps): JSX.Element {
 
   const disableOutsideClick = useRef(false);
 
-  const disableOutsideClickTest = useCallback((value: boolean) => {
+  const setOutsideClickDisabled = useCallback((value: boolean) => {
     disableOutsideClick.current = value;
   }, []);
 
@@ -99,7 +99,7 @@ export function MenuComponent(props: IProps): JSX.Element {
             spectaWidget={props.spectaWidget}
             isSpectaApp={props.isSpectaApp}
             enableStaticRenderingConfig={props.enableStaticRenderingConfig}
-            disableOutsideClickTest={disableOutsideClickTest}
+            setOutsideClickDisabled={setOutsideClickDisabled}
           />
         </div>
       )}

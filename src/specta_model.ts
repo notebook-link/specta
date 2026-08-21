@@ -81,6 +81,10 @@ export class AppModel implements IAppModel {
   get staticRender(): boolean {
     return this._staticRender;
   }
+
+  get enableStaticRendering(): boolean {
+    return this._spectaMetadata().enableStaticRendering === 'Yes';
+  }
   get snapshotChanged(): ISignal<this, void> {
     return this._snapshotChanged;
   }
@@ -279,8 +283,7 @@ export class AppModel implements IAppModel {
   }
 
   async setEnableStaticRendering(value: boolean): Promise<void> {
-    const currentSpectaConfig =
-      this.options.context.model.getMetadata('specta');
+    const currentSpectaConfig = this._spectaMetadata();
     currentSpectaConfig.enableStaticRendering = value ? 'Yes' : 'No';
     this.options.context.model.setMetadata('specta', currentSpectaConfig);
     await this.options.context.save();
@@ -382,10 +385,17 @@ export class AppModel implements IAppModel {
   }
 
   async deleteSnapshot(): Promise<void> {
+    const currentSpectaConfig = this._spectaMetadata();
+    currentSpectaConfig.enableStaticRendering = 'No';
+    this.options.context.model.setMetadata('specta', currentSpectaConfig);
     this.options.context.model.deleteMetadata(SPECTA_SNAPSHOT_KEY);
     await this.options.context.save();
     this.options.context.model.dirty = false;
     this._snapshotChanged.emit();
+  }
+
+  private _spectaMetadata(): Record<string, any> {
+    return { ...(this.options.context.model.getMetadata('specta') ?? {}) };
   }
 
   private _documentJson(): INotebookContent {

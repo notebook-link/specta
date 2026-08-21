@@ -54,7 +54,7 @@ export class NotebookGridWidgetFactory extends ABCWidgetFactory<
         nbMetadata: context.model.metadata,
         nbPath: path
       });
-      console.log('aaaaaaaaa', spectaConfig);
+
       const spectaWidget = await this._spectaWidgetFactory.createNew({
         context
       });

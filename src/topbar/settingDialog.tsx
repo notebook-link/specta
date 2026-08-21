@@ -23,7 +23,7 @@ export const SettingContent = React.memo(
     spectaWidget?: IAppWidget;
     isSpectaApp?: boolean;
     enableStaticRenderingConfig?: boolean;
-    disableOutsideClickTest: (value: boolean) => void;
+    setOutsideClickDisabled?: (value: boolean) => void;
   }) => {
     const { themeManager, layoutRegistry, settingsWidgets } = props;
     const [themeOptions, setThemeOptions] = useState<string[]>([
@@ -236,8 +236,7 @@ export const SettingContent = React.memo(
           <StaticRenderingSection
             spectaWidget={props.spectaWidget}
             isSpectaApp={props.isSpectaApp}
-            spectaConfig={props.spectaConfig}
-            disableOutsideClickTest={props.disableOutsideClickTest}
+            setOutsideClickDisabled={props.setOutsideClickDisabled}
           />
         )}
         {settingsWidgets && settingsWidgets.length > 0 && (

@@ -1,42 +1,40 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
-import { IAppModel, IAppWidget, ISpectaAppConfig } from '../token';
+import { IAppModel, IAppWidget } from '../token';
 import { showDialog, Dialog } from '@jupyterlab/apputils';
 
 type ISnapshotState = {
   status: 'out-of-sync' | 'in-sync' | 'not-exist';
   timestamp?: number;
   staticRender: boolean;
+  enabled: boolean;
 };
 
 function readSnapshotState(model?: IAppModel): ISnapshotState {
   return {
     status: model?.snapshotStatus() ?? 'not-exist',
     timestamp: model?.getSnapshot()?.timestamp,
-    staticRender: Boolean(model?.staticRender)
+    staticRender: Boolean(model?.staticRender),
+    enabled: Boolean(model?.enableStaticRendering)
   };
 }
 
 export const StaticRenderingSection = (props: {
   spectaWidget?: IAppWidget;
   isSpectaApp?: boolean;
-  spectaConfig?: ISpectaAppConfig;
-  disableOutsideClickTest: (value: boolean) => void;
+  setOutsideClickDisabled?: (value: boolean) => void;
 }) => {
-  const { isSpectaApp, spectaConfig, disableOutsideClickTest, spectaWidget } =
-    props;
+  const { isSpectaApp, setOutsideClickDisabled, spectaWidget } = props;
   const model = spectaWidget?.model;
   const [snapshotState, setSnapshotState] = useState<ISnapshotState>(() =>
     readSnapshotState(model)
   );
   const [creatingSnapshot, setCreatingSnapshot] = useState(false);
-  const [enableStaticRendering, setEnableStaticRendering] = useState(
-    Boolean(spectaConfig?.enableStaticRendering)
-  );
   const {
     status: snapshotStatus,
     timestamp: currentTimestamp,
-    staticRender: isStaticRendering
+    staticRender: isStaticRendering,
+    enabled: enableStaticRendering
   } = snapshotState;
 
   useEffect(() => {
@@ -52,49 +50,62 @@ export const StaticRenderingSection = (props: {
 
   const creatingRef = useRef(false);
 
+  const askConfirmation = useCallback(
+    async (options: Parameters<typeof showDialog>[0]) => {
+      setOutsideClickDisabled?.(true);
+      try {
+        const response = await showDialog(options);
+        return response.button.accept === true;
+      } finally {
+        setOutsideClickDisabled?.(false);
+      }
+    },
+    [setOutsideClickDisabled]
+  );
+
   const deleteSnapshot = useCallback(async () => {
     if (snapshotStatus === 'not-exist') {
       return;
     }
-    disableOutsideClickTest(true);
-    const response = await showDialog({
+    const confirmed = await askConfirmation({
       title: 'Delete render cache',
       body: 'Do you want to delete the current render cache?',
       buttons: [Dialog.cancelButton(), Dialog.warnButton({ label: 'Delete' })]
     });
-    disableOutsideClickTest(false);
-    if (response.button.accept !== true) {
+    if (!confirmed) {
       return;
     }
-    setEnableStaticRendering(false);
-    await model?.setEnableStaticRendering(false);
+    // Clears the cache and disables static rendering in a single save.
     await model?.deleteSnapshot();
-  }, [model, snapshotStatus, disableOutsideClickTest]);
+  }, [model, snapshotStatus, askConfirmation]);
 
-  const createSnapshot = useCallback(async () => {
+  /**
+   * Returns whether a cache was actually saved, so callers can avoid enabling
+   * static rendering when the user backs out.
+   */
+  const createSnapshot = useCallback(async (): Promise<boolean> => {
     if (isStaticRendering || creatingRef.current) {
-      return;
+      return false;
     }
 
-    disableOutsideClickTest(true);
-    const response = await showDialog({
+    const confirmed = await askConfirmation({
       title: 'Save render cache',
       body: 'A cache of the current notebook outputs will be saved. This will allow users to view the notebook without a running kernel, but all kernel-based interactions will be disabled.',
       buttons: [Dialog.cancelButton(), Dialog.okButton({ label: 'Save' })]
     });
-    disableOutsideClickTest(false);
-    if (response.button.accept !== true) {
-      return;
+    if (!confirmed) {
+      return false;
     }
     creatingRef.current = true;
     setCreatingSnapshot(true);
     try {
       await spectaWidget?.saveSnapshot();
+      return true;
     } finally {
       creatingRef.current = false;
       setCreatingSnapshot(false);
     }
-  }, [spectaWidget, isStaticRendering, disableOutsideClickTest]);
+  }, [spectaWidget, isStaticRendering, askConfirmation]);
 
   const activateKernel = useCallback(async () => {
     if (!isStaticRendering) {
@@ -107,11 +118,13 @@ export const StaticRenderingSection = (props: {
     async (e: React.ChangeEvent<HTMLSelectElement>) => {
       const value = e.target.value === 'on';
       if (value && snapshotStatus === 'not-exist') {
-        // Generate shapshot automatically
-        await createSnapshot();
+        // Enabling without a cache is useless, so generate one first. If the
+        // user cancels, leave the setting alone.
+        if (!(await createSnapshot())) {
+          return;
+        }
       }
-      setEnableStaticRendering(value);
-      model?.setEnableStaticRendering(value);
+      await model?.setEnableStaticRendering(value);
     },
     [model, createSnapshot, snapshotStatus]
   );

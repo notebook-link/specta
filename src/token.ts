@@ -138,6 +138,11 @@ export interface IAppModel extends IDisposable {
   readonly staticRender: boolean;
 
   /**
+   * Whether static rendering is enabled for this notebook.
+   */
+  readonly enableStaticRendering: boolean;
+
+  /**
    * A signal emitted with the re-seeded cells when the document changes.
    */
   readonly fileChanged: ISignal<IAppModel, CellList>;
@@ -191,7 +196,8 @@ export interface IAppModel extends IDisposable {
   saveSnapshotToMetadata(snapshot: ISpectaSnapshotData): Promise<void>;
 
   /**
-   * Remove the render cache from the notebook metadata and save the document.
+   * Remove the render cache from the notebook metadata, disable static
+   * rendering, and save the document.
    */
   deleteSnapshot(): Promise<void>;
 
