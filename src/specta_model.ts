@@ -41,10 +41,13 @@ import {
 
 import { ISignal, Signal } from '@lumino/signaling';
 import { INotebookContent } from '@jupyterlab/nbformat';
+import { IAppModel, ISpectaAppConfig, ISpectaSnapshotStatus } from './token';
 
-export class AppModel {
+export class AppModel implements IAppModel {
   constructor(private options: AppModel.IOptions) {
-    this._staticRender = Boolean(this.getSnapshot());
+    this._staticRender =
+      Boolean(options.spectaConfig.enableStaticRendering) &&
+      Boolean(this.getSnapshot());
     this._filePath = options.context.localPath;
     this._manager = options.manager;
 
@@ -75,8 +78,12 @@ export class AppModel {
     return this._fileChanged;
   }
 
-  get staticRender() {
+  get staticRender(): boolean {
     return this._staticRender;
+  }
+
+  get enableStaticRendering(): boolean {
+    return this._spectaMetadata().enableStaticRendering === 'Yes';
   }
   get snapshotChanged(): ISignal<this, void> {
     return this._snapshotChanged;
@@ -275,7 +282,16 @@ export class AppModel {
     return item;
   }
 
-  async turnOffStaticRender() {
+  async setEnableStaticRendering(value: boolean): Promise<void> {
+    const currentSpectaConfig = this._spectaMetadata();
+    currentSpectaConfig.enableStaticRendering = value ? 'Yes' : 'No';
+    this.options.context.model.setMetadata('specta', currentSpectaConfig);
+    await this.options.context.save();
+    this.options.context.model.dirty = false;
+    this._snapshotChanged.emit();
+  }
+
+  async turnOffStaticRender(): Promise<void> {
     if (!this._staticRender) {
       return;
     }
@@ -348,7 +364,7 @@ export class AppModel {
     );
   }
 
-  snapshotStatus(): 'out-of-sync' | 'in-sync' | 'not-exist' {
+  snapshotStatus(): ISpectaSnapshotStatus {
     const sn = this.getSnapshot();
     if (!sn) {
       return 'not-exist';
@@ -369,14 +385,24 @@ export class AppModel {
   }
 
   async deleteSnapshot(): Promise<void> {
+    const currentSpectaConfig = this._spectaMetadata();
+    currentSpectaConfig.enableStaticRendering = 'No';
+    this.options.context.model.setMetadata('specta', currentSpectaConfig);
     this.options.context.model.deleteMetadata(SPECTA_SNAPSHOT_KEY);
     await this.options.context.save();
     this.options.context.model.dirty = false;
     this._snapshotChanged.emit();
   }
 
+  private _spectaMetadata(): Record<string, any> {
+    return { ...(this.options.context.model.getMetadata('specta') ?? {}) };
+  }
+
   private _documentJson(): INotebookContent {
     const json = this.options.context.model.toJSON() as INotebookContent;
+    // sandbox context does not need metadata, this is to avoid
+    // reloading specta view when changing specta metadata
+    delete json.metadata['specta'];
     delete json.metadata[SPECTA_SNAPSHOT_KEY];
     return json;
   }
@@ -409,6 +435,7 @@ export namespace AppModel {
     notebookConfig: StaticNotebook.INotebookConfig;
     editorServices: IEditorServices;
     kernelSpecManager: KernelSpec.IManager;
+    spectaConfig: ISpectaAppConfig;
   }
 }
 

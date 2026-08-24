@@ -28,7 +28,7 @@ A `specta` preview can be launched directly from JupyterLab, letting users verif
 
 ### Static Rendering (no kernel required)
 
-Execute a notebook once while authoring and store the result — outputs and `ipywidgets` state — inside the notebook itself, so readers see the rendered document immediately without a kernel ever starting. See [Static rendering](#static-rendering).
+Execute a notebook once while authoring and store the result — outputs and `ipywidgets` state — inside the notebook itself, so readers see the rendered document immediately without a kernel ever starting. Enabled per notebook, so the notebooks that need a live kernel keep one. See [Static rendering](#static-rendering).
 
 ## Try it online!
 
@@ -66,7 +66,7 @@ If you want to disable specta loading spinner, you can set the environment varia
 
 ### Previewing from JupyterLab
 
-While authoring, you don't have to rebuild the site to see the result. In JupyterLab, right-click the file in the file browser and choose **Open With ▸ Specta**: the document is rendered in a panel with the same layouts and the same top bar as the deployed app, using a real kernel. This preview is also where you manage the render cache described below.
+While authoring, you don't have to rebuild the site to see the result. In JupyterLab, right-click the file in the file browser and choose **Open With ▸ Specta**: the document is rendered in a panel with the same layouts and the same top bar as the Specta app, using a real kernel. This preview is also where you manage the render cache described below.
 
 ### Static rendering
 
@@ -74,31 +74,41 @@ By default Specta starts a kernel and re-executes the notebook every time a read
 
 **Static rendering** removes the kernel from that path. You execute the notebook once while authoring and save a _render cache_: the outputs, plus the state of any `ipywidgets` in the document, are stored inside the notebook itself. When a reader later opens that notebook, Specta rebuilds the rendered document directly from the cache and never starts a kernel.
 
-#### Saving a render cache
+Static rendering is a per-notebook setting, a notebook is rendered from its cache only when **both** of the following are true:
 
-The render cache is created from the JupyterLab/JupyterLite preview, not from the deployed app:
+- static rendering is enabled for that notebook, and
+- a render cache is stored in the notebook and can be read.
+
+If either is missing — the setting is off, the cache was never saved, or it was written by an incompatible version of Specta — Specta falls back to normal kernel rendering rather than showing a stale or wrong result.
+
+#### Enabling static rendering and saving a cache
+
+Both are done from the JupyterLab/JupyterLite preview, not from the Specta app:
 
 1. Open the notebook in JupyterLab/JupyterLite and launch the Specta preview.
 2. Wait for the notebook to finish executing, so the outputs you want to capture are on screen.
 3. Open the settings dialog in the top bar and find the **Static rendering** section.
-4. Click **Save cache**.
+4. Set the **Static rendering** dropdown to **Enable**. If the notebook has no cache yet, Specta offers to save one immediately; confirm the dialog to capture the outputs currently on screen.
 
-The cache is written into the notebook's metadata and the file is saved. From then on, opening that notebook in Specta — in the preview or in the built app — renders it statically. Rebuild your site with `jupyter lite build` to publish it.
+To refresh the cache later — after re-running the notebook against new data, for example — click **Save cache** and confirm the dialog.
 
-Because the cache lives in the notebook file, there is no sidecar file to keep in sync: copying, committing, or downloading the `.ipynb` carries the rendered result with it.
+The setting and the cache are both written into the notebook's metadata and the file is saved. Rebuild your site with `jupyter lite build` to publish the result.
 
 #### Keeping the cache in sync
 
-Specta records a hash of the notebook's code when it saves the cache, and compares it every time the document is opened. The **Static rendering** section of the settings dialog shows the current state:
+Specta records a hash of the notebook's code when it saves the cache, and compares it every time the document is opened. The **Static rendering** section of the settings dialog reports:
 
+- **Current render mode** – whether the document on screen was built from the **Saved cache** or from a **Live kernel**.
+- **Last cache** – when the cache was saved, if the notebook has one.
 - **No render cache found** – the notebook has never been cached; it will render with a kernel.
 - **Render cache is out of sync with the notebook** – the code has changed since the cache was saved. Specta asks whether to use the existing cache anyway or to re-run the notebook with a kernel.
-- Otherwise the cache matches the notebook, along with the time it was last saved.
 
 Two other actions are available:
 
 - **Clear cache** (preview only) removes the cache from the notebook, returning it to kernel rendering.
-- **Render with kernel** is available in the preview _and_ in the deployed app. It lets a reader looking at a statically rendered document start a kernel on demand, for example to interact with widgets whose behaviour depends on running Python.
+- **Render with kernel** is available in the preview _and_ in the Specta app. It lets a reader looking at a statically rendered document start a kernel on demand, for example to interact with widgets whose behaviour depends on running Python.
+
+In the Specta app the **Static rendering** dropdown and the cache buttons are hidden. Readers can still start a kernel with **Render with kernel**, but only the author can change the setting or the cache.
 
 Static rendering applies to notebooks. Other Jupyter-supported files rendered by Specta's clean viewer do not execute code and so have no cache to save.
 
@@ -169,6 +179,8 @@ The following options are available:
 In addition to the global configuration, you can also configure the layout and top bar for each notebook by using the notebook metadata. You can use the `Specta App Config` of the `Property Inspector` panel of JupyterLab to edit the notebook metadata.
 
 ![Metadata](./docs/images/specta-meta.jpg)
+
+The `Enable static rendering` field of this section controls whether the notebook is rendered from its render cache, as described in [Static rendering](#static-rendering). It defaults to `No`, and the **Static rendering** dropdown of the settings dialog writes the same field, so you can set it from either place. This one is deliberately per notebook only: it cannot be set globally or through `perFileConfig`.
 
 ### Notebook cell configuration
 

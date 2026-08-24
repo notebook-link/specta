@@ -4,8 +4,9 @@ import { Message } from '@lumino/messaging';
 import { Panel, Widget } from '@lumino/widgets';
 
 import { SpectaCellOutput } from './specta_cell_output';
-import type { AppModel } from './specta_model';
 import {
+  IAppModel,
+  IAppWidget,
   ISpectaAppConfig,
   ISpectaLayout,
   ISpectaLayoutRegistry
@@ -18,7 +19,7 @@ import {
 } from './tool';
 import { captureSnapshot } from './snapshot';
 
-export class AppWidget extends Panel {
+export class AppWidget extends Panel implements IAppWidget {
   constructor(options: AppWidget.IOptions) {
     super();
     this.node.id = options.id;
@@ -68,7 +69,7 @@ export class AppWidget extends Panel {
     return this._ready.promise;
   }
 
-  get model(): AppModel {
+  get model(): IAppModel {
     return this._model;
   }
 
@@ -180,7 +181,7 @@ export class AppWidget extends Panel {
     this.removeSpinner();
   }
 
-  async turnOffStaticRender() {
+  async turnOffStaticRender(): Promise<void> {
     if (!this._model.staticRender) {
       return;
     }
@@ -235,7 +236,7 @@ export class AppWidget extends Panel {
       spectaConfig: this._spectaAppConfig
     });
   }
-  private _model: AppModel;
+  private _model: IAppModel;
 
   private _ready = new PromiseDelegate<void>();
 
@@ -254,7 +255,7 @@ export namespace AppWidget {
   export interface IOptions {
     id: string;
     label: string;
-    model: AppModel;
+    model: IAppModel;
     layoutRegistry: ISpectaLayoutRegistry;
     spectaConfig: ISpectaAppConfig;
   }

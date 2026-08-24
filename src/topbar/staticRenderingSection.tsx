@@ -1,36 +1,56 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
-import type { AppModel } from '../specta_model';
-import type { AppWidget } from '../specta_widget';
+import { IAppModel, IAppWidget } from '../token';
+import { showDialog, Dialog } from '@jupyterlab/apputils';
 
 type ISnapshotState = {
   status: 'out-of-sync' | 'in-sync' | 'not-exist';
   timestamp?: number;
   staticRender: boolean;
+  enabled: boolean;
+};
+const StatusLine = (props: { children: React.ReactNode }) => (
+  <div style={{ flexGrow: 1, display: 'flex', alignItems: 'center' }}>
+    {props.children}
+  </div>
+);
+
+const formatTimestamp = (timestamp?: number) => {
+  if (!timestamp) {
+    return 'Unavailable';
+  }
+  return new Date(timestamp).toLocaleString(undefined, {
+    dateStyle: 'short',
+    timeStyle: 'short',
+    hourCycle: 'h23'
+  });
 };
 
-function readSnapshotState(model?: AppModel): ISnapshotState {
+const readSnapshotState = (model?: IAppModel): ISnapshotState => {
   return {
     status: model?.snapshotStatus() ?? 'not-exist',
     timestamp: model?.getSnapshot()?.timestamp,
-    staticRender: Boolean(model?.staticRender)
+    staticRender: Boolean(model?.staticRender),
+    enabled: Boolean(model?.enableStaticRendering)
   };
-}
+};
 
 export const StaticRenderingSection = (props: {
-  spectaWidget?: AppWidget;
+  spectaWidget?: IAppWidget;
   isSpectaApp?: boolean;
+  setOutsideClickDisabled?: (value: boolean) => void;
 }) => {
-  const model = props.spectaWidget?.model;
+  const { isSpectaApp, setOutsideClickDisabled, spectaWidget } = props;
+  const model = spectaWidget?.model;
   const [snapshotState, setSnapshotState] = useState<ISnapshotState>(() =>
     readSnapshotState(model)
   );
   const [creatingSnapshot, setCreatingSnapshot] = useState(false);
-
   const {
     status: snapshotStatus,
     timestamp: currentTimestamp,
-    staticRender: isStaticRendering
+    staticRender: isStaticRendering,
+    enabled: enableStaticRendering
   } = snapshotState;
 
   useEffect(() => {
@@ -46,39 +66,120 @@ export const StaticRenderingSection = (props: {
 
   const creatingRef = useRef(false);
 
+  const askConfirmation = useCallback(
+    async (options: Parameters<typeof showDialog>[0]) => {
+      setOutsideClickDisabled?.(true);
+      try {
+        const response = await showDialog(options);
+        return response.button.accept === true;
+      } finally {
+        setOutsideClickDisabled?.(false);
+      }
+    },
+    [setOutsideClickDisabled]
+  );
+
   const deleteSnapshot = useCallback(async () => {
     if (snapshotStatus === 'not-exist') {
       return;
     }
-    await model?.deleteSnapshot();
-  }, [model, snapshotStatus]);
-
-  const createSnapshot = useCallback(async () => {
-    if (isStaticRendering || creatingRef.current) {
+    const confirmed = await askConfirmation({
+      title: 'Delete render cache',
+      body: 'Do you want to delete the current render cache?',
+      buttons: [Dialog.cancelButton(), Dialog.warnButton({ label: 'Delete' })]
+    });
+    if (!confirmed) {
       return;
+    }
+    // Clears the cache and disables static rendering in a single save.
+    await model?.deleteSnapshot();
+  }, [model, snapshotStatus, askConfirmation]);
+
+  /**
+   * Returns whether a cache was actually saved, so callers can avoid enabling
+   * static rendering when the user backs out.
+   */
+  const createSnapshot = useCallback(async (): Promise<boolean> => {
+    if (isStaticRendering || creatingRef.current) {
+      return false;
+    }
+
+    const confirmed = await askConfirmation({
+      title: 'Save render cache',
+      body: 'A cache of the current notebook outputs will be saved. This will allow users to view the notebook without a running kernel, but all kernel-based interactions will be disabled.',
+      buttons: [Dialog.cancelButton(), Dialog.okButton({ label: 'Save' })]
+    });
+    if (!confirmed) {
+      return false;
     }
     creatingRef.current = true;
     setCreatingSnapshot(true);
     try {
-      await props.spectaWidget?.saveSnapshot();
+      await spectaWidget?.saveSnapshot();
+      return true;
     } finally {
       creatingRef.current = false;
       setCreatingSnapshot(false);
     }
-  }, [props.spectaWidget, isStaticRendering]);
+  }, [spectaWidget, isStaticRendering, askConfirmation]);
+
+  // `staticRender` is fixed when the document is opened, so enabling the
+  // setting does not switch the view that is already on screen. Only warn once
+  // there is a cache to switch to.
+  const pendingStaticRender =
+    !isSpectaApp &&
+    enableStaticRendering &&
+    !isStaticRendering &&
+    snapshotStatus !== 'not-exist';
 
   const activateKernel = useCallback(async () => {
     if (!isStaticRendering) {
       return;
     }
-    await props.spectaWidget?.turnOffStaticRender();
-  }, [props.spectaWidget, isStaticRendering]);
+    await spectaWidget?.turnOffStaticRender();
+  }, [spectaWidget, isStaticRendering]);
 
+  const onStaticRenderingChange = useCallback(
+    async (e: React.ChangeEvent<HTMLSelectElement>) => {
+      const value = e.target.value === 'on';
+      if (value && snapshotStatus === 'not-exist') {
+        // Enabling without a cache is useless, so generate one first. If the
+        // user cancels, leave the setting alone.
+        if (!(await createSnapshot())) {
+          return;
+        }
+      }
+      await model?.setEnableStaticRendering(value);
+    },
+    [model, createSnapshot, snapshotStatus]
+  );
   return (
     <div>
       <label htmlFor="">
-        <b>Static rendering: {isStaticRendering ? 'On' : 'Off'}</b>
+        <b>Static rendering</b>
       </label>
+      {!isSpectaApp && (
+        <div className="jp-select-wrapper">
+          <select
+            className=" jp-mod-styled specta-topbar-theme"
+            value={enableStaticRendering ? 'on' : 'off'}
+            onChange={onStaticRenderingChange}
+          >
+            <option
+              value={'off'}
+              style={{ background: 'var(--jp-layout-color2)' }}
+            >
+              Disable
+            </option>
+            <option
+              value={'on'}
+              style={{ background: 'var(--jp-layout-color2)' }}
+            >
+              Enable
+            </option>
+          </select>
+        </div>
+      )}
       <div
         style={{
           marginBottom: '12px',
@@ -87,28 +188,34 @@ export const StaticRenderingSection = (props: {
           flexDirection: 'column'
         }}
       >
+        <div style={{ flexGrow: 1, display: 'flex', alignItems: 'center' }}>
+          Current render mode:{' '}
+          {isStaticRendering ? 'Saved cache' : 'Live kernel'}
+        </div>
         {snapshotStatus !== 'not-exist' && (
           <div style={{ flexGrow: 1, display: 'flex', alignItems: 'center' }}>
-            Last cache:{' '}
-            {currentTimestamp
-              ? new Date(currentTimestamp).toLocaleString()
-              : 'Unavailable'}
+            Last cache: {formatTimestamp(currentTimestamp)}
           </div>
         )}
-        <div style={{ flexGrow: 1, display: 'flex', alignItems: 'center' }}>
-          {snapshotStatus === 'not-exist'
-            ? 'No render cache found'
-            : snapshotStatus === 'out-of-sync'
-              ? 'Render cache is out of sync with the notebook'
-              : ''}
-        </div>
+
+        {snapshotStatus === 'not-exist' && !isSpectaApp && (
+          <StatusLine>No render cache found</StatusLine>
+        )}
+        {snapshotStatus === 'out-of-sync' && (
+          <StatusLine>Render cache is out of sync with the notebook</StatusLine>
+        )}
+        {pendingStaticRender && (
+          <StatusLine>
+            Reopen the document to preview the cached render
+          </StatusLine>
+        )}
 
         <div
           style={{
             gap: '8px',
             flexDirection: 'row',
             marginBottom: '4px',
-            display: props.isSpectaApp ? 'none' : 'flex'
+            display: isSpectaApp ? 'none' : 'flex'
           }}
         >
           <button
@@ -145,26 +252,18 @@ export const StaticRenderingSection = (props: {
             {creatingSnapshot ? 'Saving...' : 'Save cache'}
           </button>
         </div>
-        <div
-          style={{
-            display: props.spectaWidget ? 'flex' : 'none',
-            justifyContent: 'center'
-          }}
-        >
-          <button
-            className="jp-mod-styled jp-mod-accept"
-            onClick={activateKernel}
-            disabled={!isStaticRendering}
-            style={{
-              cursor: !isStaticRendering ? 'not-allowed' : 'pointer',
-              flexGrow: 1,
-              opacity: !isStaticRendering ? 0.5 : 1
-            }}
-            title="Render notebook using a live kernel"
-          >
-            Render with kernel
-          </button>
-        </div>
+        {spectaWidget && isStaticRendering && (
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <button
+              className="jp-mod-styled jp-mod-accept"
+              onClick={activateKernel}
+              style={{ cursor: 'pointer', flexGrow: 1 }}
+              title="This notebook is showing saved outputs. Start a kernel to interact with it."
+            >
+              Render with kernel
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -316,6 +316,12 @@ export function readSpectaConfig({
     delete spectaMetadata.topbarThemeToggle;
   }
 
+  if (spectaMetadata.enableStaticRendering === 'Yes') {
+    spectaMetadata.enableStaticRendering = true;
+  } else {
+    spectaMetadata.enableStaticRendering = false;
+  }
+
   // merge spectaConfig and spectaMetadata (spectaMetadata has higher priority
   return mergeObjects(spectaConfig, spectaMetadata);
 }

@@ -1,12 +1,16 @@
 import { IThemeManager } from '@jupyterlab/apputils';
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { ISignal } from '@lumino/signaling';
 
 import { GearIcon } from '../components/icon/gear';
 import { IconButton } from '../components/iconButton';
 import { SettingContent } from './settingDialog';
-import { ISpectaUiSwitcher, ITopbarConfig, ISpectaWidget } from '../token';
-import type { AppWidget } from '../specta_widget';
+import {
+  IAppWidget,
+  ISpectaUiSwitcher,
+  ISpectaWidget,
+  ITopbarConfig
+} from '../token';
 
 interface IProps {
   config?: ITopbarConfig;
@@ -14,7 +18,7 @@ interface IProps {
   settingsWidgets?: ISpectaWidget[];
   uiSwitcher?: ISpectaUiSwitcher | null;
   currentPath?: string | null;
-  spectaWidget?: AppWidget;
+  spectaWidget?: IAppWidget;
   currentUi?: string;
   settingsIconChanged?: ISignal<any, JSX.Element>;
   customIcon?: JSX.Element;
@@ -30,6 +34,12 @@ export function MenuComponent(props: IProps): JSX.Element {
     props.customIcon
   );
 
+  const disableOutsideClick = useRef(false);
+
+  const setOutsideClickDisabled = useCallback((value: boolean) => {
+    disableOutsideClick.current = value;
+  }, []);
+
   useEffect(() => {
     setCustomIcon(props.customIcon);
   }, [props.customIcon]);
@@ -37,6 +47,7 @@ export function MenuComponent(props: IProps): JSX.Element {
   useEffect(() => {
     const handleClickOutside = (e: any) => {
       if (
+        !disableOutsideClick.current &&
         dialogRef.current &&
         !dialogRef.current.contains(e.target) &&
         buttonRef.current &&
@@ -88,6 +99,7 @@ export function MenuComponent(props: IProps): JSX.Element {
             spectaWidget={props.spectaWidget}
             isSpectaApp={props.isSpectaApp}
             enableStaticRenderingConfig={props.enableStaticRenderingConfig}
+            setOutsideClickDisabled={setOutsideClickDisabled}
           />
         </div>
       )}

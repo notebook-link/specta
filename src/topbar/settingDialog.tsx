@@ -2,16 +2,16 @@ import { IThemeManager } from '@jupyterlab/apputils';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Divider } from '../components/divider';
 import {
+  IAppWidget,
   ISpectaLayoutRegistry,
   ISpectaUiSwitcher,
-  ITopbarConfig,
-  ISpectaWidget
+  ISpectaWidget,
+  ITopbarConfig
 } from '../token';
 import { Widget } from '@lumino/widgets';
-import type { AppWidget } from '../specta_widget';
 import { StaticRenderingSection } from './staticRenderingSection';
 
-export const SettingContent = (props: {
+const SettingContentImpl = (props: {
   config?: ITopbarConfig;
   themeManager?: IThemeManager;
   layoutRegistry?: ISpectaLayoutRegistry;
@@ -19,9 +19,10 @@ export const SettingContent = (props: {
   uiSwitcher?: ISpectaUiSwitcher | null;
   currentPath?: string | null;
   currentUi?: string;
-  spectaWidget?: AppWidget;
+  spectaWidget?: IAppWidget;
   isSpectaApp?: boolean;
   enableStaticRenderingConfig?: boolean;
+  setOutsideClickDisabled?: (value: boolean) => void;
 }) => {
   const { themeManager, layoutRegistry, settingsWidgets } = props;
   const [themeOptions, setThemeOptions] = useState<string[]>([
@@ -234,6 +235,7 @@ export const SettingContent = (props: {
         <StaticRenderingSection
           spectaWidget={props.spectaWidget}
           isSpectaApp={props.isSpectaApp}
+          setOutsideClickDisabled={props.setOutsideClickDisabled}
         />
       )}
       {settingsWidgets && settingsWidgets.length > 0 && (
@@ -245,3 +247,7 @@ export const SettingContent = (props: {
     </div>
   );
 };
+
+export const SettingContent = React.memo(SettingContentImpl);
+
+SettingContent.displayName = 'SettingContent';

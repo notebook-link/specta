@@ -51,6 +51,12 @@
               "white"
             ],
             "default": null
+          },
+          "/specta/enableStaticRendering": {
+            "type": "string",
+            "enum": ["Yes", "No"],
+            "default": "No",
+            "title": "Enable static rendering"
           }
         }
       },
@@ -72,6 +78,10 @@
           "writeDefault": false
         },
         "/specta/topbarThemeToggle": {
+          "metadataLevel": "notebook",
+          "writeDefault": false
+        },
+        "/specta/enableStaticRendering": {
           "metadataLevel": "notebook",
           "writeDefault": false
         }
