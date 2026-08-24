@@ -39,6 +39,14 @@ jobs:
           npm run build:all:dev
           python -m pip install -e .
 
+      - name: Enable persistent storage for the deployed demo
+        shell: bash -l {0}
+        run: |
+          set -eux
+          jq 'del(.["jupyter-config-data"].enableMemoryStorage, .["jupyter-config-data"].contentsStorageDrivers)' \
+            demo/jupyter-lite.json > demo/jupyter-lite.json.tmp
+          mv demo/jupyter-lite.json.tmp demo/jupyter-lite.json
+
       - name: Build the lite site
         shell: bash -l {0}
         run: |
