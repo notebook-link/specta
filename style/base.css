@@ -68,6 +68,14 @@
   flex-grow: 1;
 }
 
+.specta-cell-output .jp-OutputArea {
+  padding: var(--jp-cell-padding);
+  padding-left: calc(
+    var(--jp-cell-padding) + var(--jp-cell-prompt-width) +
+      var(--jp-code-padding)
+  );
+}
+
 #specta-top-panel {
   min-height: 28px;
   display: flex;
