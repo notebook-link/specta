@@ -2,6 +2,25 @@
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
+## 0.5.3
+
+([Full Changelog](https://github.com/notebook-link/specta/compare/v0.5.2...563ea21daac97765c05629ad547dc16d0ed6d481))
+
+### Merged PRs
+
+- Backwards compatibility fix for legacy projects [#71](https://github.com/notebook-link/specta/pull/71) ([@Yahiewi](https://github.com/Yahiewi), [@SylvainCorlay](https://github.com/SylvainCorlay), [@trungleduc](https://github.com/trungleduc))
+
+### Contributors to this release
+
+The following people contributed discussions, new ideas, code and documentation contributions, and review.
+See [our definition of contributors](https://github-activity.readthedocs.io/en/latest/use/#how-does-this-tool-define-contributions-in-the-reports).
+
+([GitHub contributors page for this release](https://github.com/notebook-link/specta/graphs/contributors?from=2026-08-24&to=2026-10-09&type=c))
+
+@SylvainCorlay ([activity](https://github.com/search?q=repo%3Anotebook-link%2Fspecta+involves%3ASylvainCorlay+updated%3A2026-08-24..2026-10-09&type=Issues)) | @trungleduc ([activity](https://github.com/search?q=repo%3Anotebook-link%2Fspecta+involves%3Atrungleduc+updated%3A2026-08-24..2026-10-09&type=Issues)) | @Yahiewi ([activity](https://github.com/search?q=repo%3Anotebook-link%2Fspecta+involves%3AYahiewi+updated%3A2026-08-24..2026-10-09&type=Issues))
+
+<!-- <END NEW CHANGELOG ENTRY> -->
+
 ## 0.5.2
 
 ([Full Changelog](https://github.com/notebook-link/specta/compare/v0.5.1...63bb19e1d15ac7596f8e5880ece8b352e164861c))
@@ -22,8 +41,6 @@ See [our definition of contributors](https://github-activity.readthedocs.io/en/l
 ([GitHub contributors page for this release](https://github.com/notebook-link/specta/graphs/contributors?from=2026-06-30&to=2026-08-24&type=c))
 
 @martinRenou ([activity](https://github.com/search?q=repo%3Anotebook-link%2Fspecta+involves%3AmartinRenou+updated%3A2026-06-30..2026-08-24&type=Issues)) | @trungleduc ([activity](https://github.com/search?q=repo%3Anotebook-link%2Fspecta+involves%3Atrungleduc+updated%3A2026-06-30..2026-08-24&type=Issues)) | @Yahiewi ([activity](https://github.com/search?q=repo%3Anotebook-link%2Fspecta+involves%3AYahiewi+updated%3A2026-06-30..2026-08-24&type=Issues))
-
-<!-- <END NEW CHANGELOG ENTRY> -->
 
 ## 0.5.1
 
