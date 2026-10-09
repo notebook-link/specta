@@ -4,6 +4,11 @@ import { DashboardLayout } from './default';
 import { ArticleLayout } from './article';
 import { SlidesLayout } from './slides';
 
+// 'default' was renamed to 'dashboard', this is for backwards compatibility
+function legacyName(name: string): string {
+  return name === 'default' ? 'dashboard' : name;
+}
+
 export class SpectaLayoutRegistry implements ISpectaLayoutRegistry {
   constructor() {
     const dashboardLayout = new DashboardLayout();
@@ -32,7 +37,7 @@ export class SpectaLayoutRegistry implements ISpectaLayoutRegistry {
     return this._selectedLayoutChanged;
   }
   get(name: string): ISpectaLayout | undefined {
-    return this._registry.get(name);
+    return this._registry.get(legacyName(name));
   }
 
   getDefaultLayout(): ISpectaLayout {
@@ -40,6 +45,7 @@ export class SpectaLayoutRegistry implements ISpectaLayoutRegistry {
   }
 
   async setSelectedLayout(name: string): Promise<void> {
+    name = legacyName(name);
     if (!this._registry.has(name)) {
       throw new Error(`Layout with name ${name} does not exist`);
     }
